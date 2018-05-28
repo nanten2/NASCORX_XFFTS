@@ -4,12 +4,10 @@ import sys
 import time
 from datetime import datetime
 import rospy
-import numpy
+import numpy as np
 import signal
 import threading
 import random
-###change
-###
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
 from NASCORX_XFFTS.msg import XFFTS_temp_msg
@@ -24,9 +22,6 @@ class data_server(object):
         rospy.init_node('XFFTS_data_server')
         pass
 
-
-###change
-###
     def stop_loop(self):
         """
         DESCRIPTION
@@ -110,29 +105,9 @@ class data_server(object):
 
             # binary to float conversion
             # --------------------------
-            spec = []
-            pow = []
-            for i in range(self.BE_num_Max):
-                # For Available BE
-                if i+1 <= header.BE_num:
-                    ###change
-                    data_temp = []
-                    for j in range(32768):
-                        data = random.randint(1,10000) 
-                        data_temp.append(data)
-                    ###
-                    pow_temp = sum(data_temp)
-                    spec.append(data_temp)
-                    pow.append(pow_temp)
-                # For Unavailable BE
-                elif header.BE_num <= i+1:
-                    spec.append([0])
-                    pow.append(0)
-            #s1 = spec[0]
-            #s2 = pow[0]
-
-            #print("datalist",s1[10])
-            #print("pow",s2)
+            spec = np.random.random_integers(low=1, high=10000, size=(header.BE_num, 32768))
+            pow = np.sum(spec, axis=1)
+            
 
             # ROS Data Trans
             # --------------
@@ -292,7 +267,7 @@ class data_header(object):
         self.timestamp = (datetime.now()).strftime('%Y-%m-%dT%H:%M:%S.%fPC  ')
         self.integration_time = 998993
         self.phase_number = int(1)
-        self.BE_num = int(4)   #BEの数を変えれる
+        self.BE_num = int(20)   #BEの数を変えれる
         self.blocking = int(1)
         return
 ###
