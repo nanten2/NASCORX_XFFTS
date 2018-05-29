@@ -178,7 +178,7 @@ class data_client(object):
              Default         : Nothing.
         """
         sub = rospy.Subscriber('XFFTS_SPEC', XFFTS_msg, self.append)
-        time.sleep(waittime + integtime * repeat + 3.5)
+        time.sleep(waittime + integtime * repeat + 0.5)
         sub.unregister()
 
         return
@@ -290,7 +290,7 @@ class data_client(object):
 
     def conti_data_subscriber(self, integtime, repeat, waittime):
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
-        time.sleep(waittime + integtime * repeat + 3.5)
+        time.sleep(waittime + integtime * repeat + 0.5)
         sub2.unregister()
         return
 
@@ -448,6 +448,7 @@ def run(req):
 
     spec, conti = data.measure(integtime, repeat, start)
 
+    timelist = spec[0]
     unixtime = spec[1]
     spectrum = numpy.array(spec[2])
     continuum = conti[2]
@@ -457,8 +458,10 @@ def run(req):
     print("continuum\n",continuum,"\n")
     
     for i in range(numpy.shape(spectrum)[1]):
-        hdu = fits.PrimaryHDU(spectrum[:, i, :])
-        hdu.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, unixtime[0][0]))
+        hdu1 = fits.PrimaryHDU(unixtime)
+        hdu2 = fits.ImageHDU(spectrum[:, i, :])
+        hdulist = fits.HDUList([hdu1, hdu2])
+        hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
         pass
     
     return
@@ -470,11 +473,3 @@ if __name__ == '__main__':
     sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, run)
     rospy.spin()
 
-    #start = float(time.time()+1)
-    #run(int(1), int(1),float(0.1),start)
-
-# History
-# -------
-# written by T.Inaba
-# 2017/10/23 T.Inaba : add continuum oneshot function
-# 2017/10/25 T.Inaba : add board temperature function
