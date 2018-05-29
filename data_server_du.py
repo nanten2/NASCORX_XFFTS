@@ -96,18 +96,14 @@ class data_server(object):
             # get data
             # --------
             header = data_header()
-            ####change
             
             timestamp = header.timestamp
-            ####
             BE_num = header.BE_num
             print(timestamp, BE_num)
-
-            # binary to float conversion
-            # --------------------------
+            
+            #make data
             spec = np.random.random_integers(low=1, high=10000, size=(header.BE_num, 32768))
             pow = np.sum(spec, axis=1)
-            
 
             # ROS Data Trans
             # --------------
@@ -181,7 +177,7 @@ class data_server(object):
         ARGUMENTS
         =========
         Nothing.
-###RETURNSがちがそう
+        
         RETURNS
         =======
         Nothing, but send values listed below to ROS subscriber.
@@ -204,7 +200,6 @@ class data_server(object):
         # -----------
         pub3 = rospy.Publisher('XFFTS_TEMP', XFFTS_temp_msg, queue_size=10)
         XFFTS_TEMP = XFFTS_temp_msg()
-###change
 
         while True:
 
@@ -218,12 +213,9 @@ class data_server(object):
                 temp_data = random.randint(0,350)
                 temps.append(temp_data)
             #print ("temp",temps)
-###
             # ROS Data Trans
             # --------------
             XFFTS_TEMP.timestamp = timestamp
-###change
-###
             XFFTS_TEMP.TEMP_BE1 = temps[0]
             XFFTS_TEMP.TEMP_BE2 = temps[1]
             XFFTS_TEMP.TEMP_BE3 = temps[2]
@@ -258,7 +250,6 @@ class data_server(object):
 
 class data_header(object):
     header_size = 64
-###change
     def __init__(self):
         self.ieee= "EEEI"
         self.data_format = "F   "
@@ -270,7 +261,7 @@ class data_header(object):
         self.BE_num = int(20)   #BEの数を変えれる
         self.blocking = int(1)
         return
-###
+
 if __name__ == '__main__':
     serv = data_server()
 

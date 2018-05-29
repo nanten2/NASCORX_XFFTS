@@ -51,7 +51,11 @@ class data_client(object):
             elif mode == 'temp':
                 unixlist = self.btemp_unixlist
                 start_arg = round(start,1)
+            index = unixlist.index(start_arg)
 
+        return index
+
+    """
             try:
                 index = unixlist.index(start_arg)
             except ValueError:
@@ -65,7 +69,7 @@ class data_client(object):
                     except ValueError:
                         start_arg = round(start_arg + 0.3, 1)
                         index = unixlist.index(start_arg)
-        return index
+    """
 
     def timestamp_to_unixtime(self, timestamp):
         """
@@ -158,7 +162,6 @@ class data_client(object):
             spectrum.append(numpy.average(self.data[start:fin], axis=0))
             timelist.append(self.timestamp[start:fin])
             unixlist.append(self.unixlist[start:fin])
-        #print("timelist's length: ",len(self.timestamp))
         self.spec_data = [timelist, unixlist, spectrum]
 
         return
@@ -283,7 +286,6 @@ class data_client(object):
             spectrum.append((numpy.average(self.conti_data[start:fin], axis=0)))
             timelist.append(self.conti_timestamp[start:fin])
             unixlist.append(self.conti_unixlist[start:fin])
-        #print("conti_timelist's length: ",len(self.conti_timestamp))
         self.conti_data = [timelist, unixlist, spectrum]
 
         return
@@ -444,8 +446,7 @@ def run(req):
     integtime = req.integtime
     repeat = req.repeat
     synctime = req.synctime
-    start = req.timestamp
-
+    start = req.timestamp + float(0.1)
     spec, conti = data.measure(integtime, repeat, start)
 
     timelist = spec[0]
