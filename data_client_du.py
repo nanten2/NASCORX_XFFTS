@@ -55,22 +55,6 @@ class data_client(object):
 
         return index
 
-    """
-            try:
-                index = unixlist.index(start_arg)
-            except ValueError:
-                try:
-                    start_arg = round(start_arg + 0.1, 1)
-                    index = unixlist.index(start_arg)
-                except ValueError:
-                    try:
-                        start_arg = round(start_arg + 0.2, 1)
-                        index = unixlist.index(start_arg)
-                    except ValueError:
-                        start_arg = round(start_arg + 0.3, 1)
-                        index = unixlist.index(start_arg)
-    """
-
     def timestamp_to_unixtime(self, timestamp):
         """
         DESCRIPTION
@@ -446,7 +430,7 @@ def run(req):
     integtime = req.integtime
     repeat = req.repeat
     synctime = req.synctime
-    start = req.timestamp + float(0.1)
+    start = req.timestamp + req.rugtime
     spec, conti = data.measure(integtime, repeat, start)
 
     timelist = spec[0]
@@ -454,9 +438,9 @@ def run(req):
     spectrum = numpy.array(spec[2])
     continuum = conti[2]
     
-    print("\nunixtime\n",unixtime,"\n")
-    print("spectrum\n",spectrum,"\n")
-    print("continuum\n",continuum,"\n")
+    #print("\nunixtime\n",unixtime,"\n")
+    #print("spectrum\n",spectrum,"\n")
+    #print("continuum\n",continuum,"\n")
     
     for i in range(numpy.shape(spectrum)[1]):
         hdu1 = fits.PrimaryHDU(unixtime)
@@ -465,6 +449,8 @@ def run(req):
         hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
         pass
     
+    print("fin\n")
+
     return
 
 
