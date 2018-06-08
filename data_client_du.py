@@ -78,7 +78,7 @@ class data_client(object):
     # -------------
     def spec(self):
         rospy.init_node('XFFTS')
-        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, spec_run)
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.spec_run)
         rospy.spin()
 
     def spec_run(self, req):
