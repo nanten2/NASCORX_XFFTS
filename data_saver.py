@@ -15,7 +15,7 @@ class data_saver(object):
         pass
 
     def data_subscriber(self):
-        rospy.init_node('XFFTS')
+        rospy.init_node('XFFTS_SAVER')
         sub = rospy.Subscriber('XFFTS_SPEC', XFFTS_msg, self.save)
         rospy.spin()
         
@@ -29,11 +29,11 @@ class data_saver(object):
                 req.SPEC_BE9, req.SPEC_BE10, req.SPEC_BE11, req.SPEC_BE12,
                 req.SPEC_BE13, req.SPEC_BE14, req.SPEC_BE15, req.SPEC_BE16,
                 req.SPEC_BE17, req.SPEC_BE18, req.SPEC_BE19, req.SPEC_BE20]
-
-        hdu1 = fits.PrimaryHDU(timestamp)
-        hud2 = fits.ImageHDU(datalist)
-        hdulist = fits.HDUList([hdu1, hdu2])
-        hdulist.writeto(dir+'data_{}.fits'.format(timestamp))
+        
+        hdr = fits.Header()
+        hdr['TIME'] = timestamp
+        hdu = fits.PrimaryHDU(datalist, header=hdr)
+        hdu.writeto(dir+'data_{}.fits'.format(timestamp))
         
         return
 
