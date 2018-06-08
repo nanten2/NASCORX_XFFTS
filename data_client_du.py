@@ -17,8 +17,6 @@ dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
 
 class data_client(object):
     synctime = 0.1
-    spec_data = None
-    conti_data = None
 
     def __init__(self, synctime=0.1):
         self.synctime = synctime
@@ -78,7 +76,28 @@ class data_client(object):
 
     # Spectrum Func
     # -------------
+    def spec(self):
+        rospy.init_node('XFFTS')
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, spec_run)
+        rospy.spin()
 
+    def spec_run(self, req):
+        integtime = req.integtime
+        repeat = req.repeat
+        synctime = req.synctime
+        start = req.timestamp + req.rugtime
+
+        spec = self.oneshot(integtime, repeat, start)
+
+        unixtime = spec[1]
+        spectrum = numpy.array(spec[2])
+
+        for i in range(numpy.shape(spectrum)[1]):
+            hdu1 = fits.PrimaryHDU(unixtime)
+            hdu2 = fits.ImageHDU(spectrum[:, i, :])
+            hdulist = fits.HDUList([hdu1, hdu2])
+            hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
+    
     def oneshot(self, integtime, repeat, start):
         """
         DESCRIPTION
@@ -146,9 +165,7 @@ class data_client(object):
             spectrum.append(numpy.average(self.data[start:fin], axis=0))
             timelist.append(self.timestamp[start:fin])
             unixlist.append(self.unixlist[start:fin])
-        self.spec_data = [timelist, unixlist, spectrum]
-
-        return
+        return [timelist, unixlist, spectrum]
 
     def data_subscriber(self, integtime, repeat, waittime):
         """
@@ -406,58 +423,3 @@ class data_client(object):
         self.btemp_unixlist.append(unix_ret)
         self.btemp_data.append(data_temp)
         return
-
-
-    def measure(self, integtime, repeat, start):
-        th1 = threading.Thread(target=self.oneshot, args=(integtime, repeat, start))
-        th2 = threading.Thread(target=self.conti_oneshot, args=(integtime, repeat, start))
-        th1.setDaemon(True)
-        th2.setDaemon(True)
-        th1.start()
-        th2.start()
-
-        th1.join()
-        th2.join()
-
-        return self.spec_data, self.conti_data
-
-
-
-def run(req):
-    data = data_client()
-
-    integtime = req.integtime
-    repeat = req.repeat
-    synctime = req.synctime
-    start = req.timestamp + req.rugtime
-    spec, conti = data.measure(integtime, repeat, start)
-
-    timelist = spec[0]
-    unixtime = spec[1]
-    spectrum = numpy.array(spec[2])
-    continuum = conti[2]
-
-"""
-    print("\nunixtime\n",unixtime,"\n")
-    print("spectrum\n",spectrum,"\n")
-    print("continuum\n",continuum,"\n")
-"""
-
-    for i in range(numpy.shape(spectrum)[1]):
-        hdu1 = fits.PrimaryHDU(unixtime)
-        hdu2 = fits.ImageHDU(spectrum[:, i, :])
-        hdulist = fits.HDUList([hdu1, hdu2])
-        hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
-        pass
-    
-    print("fin")
-
-    return
-
-
-if __name__ == '__main__':
-    
-    rospy.init_node('XFFTS')
-    sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, run)
-    rospy.spin()
-
