@@ -36,3 +36,14 @@ class data_saver(object):
         hdulist.writeto(dir+'data_{}.fits'.format(timestamp))
         
         return
+
+    def saver(self):
+        print("\n"
+                " Start : XFFTS Data Saving System ""\n")
+
+        self.data_subscriber()
+        
+        print("\n"
+                " Shut Down : XFFTS Data Saving System ""\n")
+
+        return
