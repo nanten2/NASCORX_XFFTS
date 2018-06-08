@@ -15,9 +15,11 @@ from NASCORX_XFFTS.msg import XFFTS_para_msg
 dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
 
 class data_client(object):
+    
+    integtime = 1
+    repeat = 1
     synctime = 0.1
-    spec_data = None
-    conti_data = None
+    start = 0
 
     def __init__(self, synctime=0.1):
         self.synctime = synctime
@@ -43,14 +45,15 @@ class data_client(object):
         else:
             if mode == 'spec':
                 unixlist = self.unixlist
-                start_arg = round(start, 1)
+                start_arg = round(start,1)
             elif mode == 'conti':
                 unixlist = self.conti_unixlist
-                start_arg = round(start, 1)
+                start_arg = round(start,1)
             elif mode == 'temp':
                 unixlist = self.btemp_unixlist
-                start_arg = round(start)
+                start_arg = round(start,1)
             index = unixlist.index(start_arg)
+
         return index
 
     def timestamp_to_unixtime(self, timestamp):
@@ -76,8 +79,37 @@ class data_client(object):
 
     # Spectrum Func
     # -------------
+    def spec_run(self):
+        rospy.init_node('XFFTS')
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.para_append)
+        rospy.spinOnce()
+        
+        while True:
+            spec = self.oneshot(integtime, repeat, synctime)
+            unixtime = spec[1]
+            spectrum = numpy.array(spec[2])
+            
+            for i in range(numpy.shape(spectrum)[1]):
+                hdu1 = fits.PrimaryHDU(unixtime)
+                hdu2 = fits.ImageHDU(spectrum[:, i, :])
+                hdulist = fits.HDUList([hdu1, hdu2])
+                hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
 
-    def oneshot(self, integtime, repeat, start=None):
+            unixtime = []
+            spectrum = []
+            print("fin\n")
+        
+        return
+
+    def para_append(self, req):
+        self.integtime = req.integtime
+        self.repeat = req.repeat
+        self.synctime = req.synctime
+        self.start = req.timestamp + req.rugtime
+        
+        return
+
+    def oneshot(self, integtime, repeat, start):
         """
         DESCRIPTION
         ===========
@@ -141,12 +173,11 @@ class data_client(object):
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
-            spectrum.append(list(numpy.average(self.data[start:fin], axis=0)))
-            timelist.append(self.timestamp[start])
-            unixlist.append(self.unixlist[start])
-        self.spec_data = [timelist, unixlist, spectrum]
-
-        return
+            spectrum.append(numpy.average(self.data[start:fin], axis=0))
+            timelist.append(self.timestamp[start:fin])
+            unixlist.append(self.unixlist[start:fin])
+        
+        return [timelist, unixlist, spectrum]
 
     def data_subscriber(self, integtime, repeat, waittime):
         """
@@ -165,6 +196,7 @@ class data_client(object):
         sub = rospy.Subscriber('XFFTS_SPEC', XFFTS_msg, self.append)
         time.sleep(waittime + integtime * repeat + 0.5)
         sub.unregister()
+
         return
 
     def append(self, req):
@@ -214,7 +246,7 @@ class data_client(object):
     # Continuum Func
     # --------------
 
-    def conti_oneshot(self, integtime, repeat, start=None):
+    def conti_oneshot(self, integtime, repeat, start):
         """
         DESCRIPTION
         ===========
@@ -264,12 +296,10 @@ class data_client(object):
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
-            spectrum.append(list(numpy.average(self.conti_data[start:fin], axis=0)))
-            timelist.append(self.conti_timestamp[start])
-            unixlist.append(self.conti_unixlist[start])
-        self.conti_data = [timelist, unixlist, spectrum]
-
-        return
+            spectrum.append((numpy.average(self.conti_data[start:fin], axis=0)))
+            timelist.append(self.conti_timestamp[start:fin])
+            unixlist.append(self.conti_unixlist[start:fin])
+        return [timelist, unixlist, spectrum]
 
     def conti_data_subscriber(self, integtime, repeat, waittime):
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
@@ -324,7 +354,7 @@ class data_client(object):
     # Board Temperature Func
     # ----------------------
 
-    def btemp_oneshot(self, sec, start=None):
+    def btemp_oneshot(self, sec, start):
         """
         DESCRIPTION
         ===========
@@ -377,6 +407,7 @@ class data_client(object):
             pass
         unixlist = self.btemp_unixlist[init_index:fin_index]
         templist = self.btemp_data[init_index:fin_index]
+        print("unixlist's length: ",len(self.btemp_unixlist))
         return [unixlist, templist]
 
     def btemp_data_subscriber(self, sec, waittime):
@@ -402,16 +433,3 @@ class data_client(object):
         self.btemp_unixlist.append(unix_ret)
         self.btemp_data.append(data_temp)
         return
-
-if __name__ == '__main__':
-
-    rospy.init_node('XFFTS')
-    sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, run)
-    rospy.spin()
-
-
-# History
-# -------
-# written by T.Inaba
-# 2017/10/23 T.Inaba : add continuum oneshot function
-# 2017/10/25 T.Inaba : add board temperature function

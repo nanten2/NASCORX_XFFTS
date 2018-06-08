@@ -423,7 +423,6 @@ class data_client(object):
 
 
 
-
 def run(req):
     data = data_client()
 
@@ -437,11 +436,13 @@ def run(req):
     unixtime = spec[1]
     spectrum = numpy.array(spec[2])
     continuum = conti[2]
-    
-    #print("\nunixtime\n",unixtime,"\n")
-    #print("spectrum\n",spectrum,"\n")
-    #print("continuum\n",continuum,"\n")
-    
+
+"""
+    print("\nunixtime\n",unixtime,"\n")
+    print("spectrum\n",spectrum,"\n")
+    print("continuum\n",continuum,"\n")
+"""
+
     for i in range(numpy.shape(spectrum)[1]):
         hdu1 = fits.PrimaryHDU(unixtime)
         hdu2 = fits.ImageHDU(spectrum[:, i, :])
@@ -449,7 +450,7 @@ def run(req):
         hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
         pass
     
-    print("fin\n")
+    print("fin")
 
     return
 
