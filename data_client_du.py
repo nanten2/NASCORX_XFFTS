@@ -97,7 +97,8 @@ class data_client(object):
             hdu2 = fits.ImageHDU(spectrum[:, i, :])
             hdulist = fits.HDUList([hdu1, hdu2])
             hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
-    
+        return
+
     def oneshot(self, integtime, repeat, start):
         """
         DESCRIPTION

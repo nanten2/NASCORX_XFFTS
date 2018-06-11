@@ -403,12 +403,6 @@ class data_client(object):
         self.btemp_data.append(data_temp)
         return
 
-if __name__ == '__main__':
-
-    rospy.init_node('XFFTS')
-    sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, run)
-    rospy.spin()
-
 
 # History
 # -------
