@@ -179,6 +179,8 @@ class data_server(object):
         Nothing.
         
         """
+        
+        header = data_header()
 
         # ROS setting
         # -----------
@@ -192,9 +194,8 @@ class data_server(object):
             # get data
             # --------
             timestamp = time.time()
-
+            print(timestamp)
             temps = np.random.random_integers(low=0, high=350, size=(header.BE_num, 1))
-            print(temps)
             # ROS Data Trans
             # --------------
             XFFTS_TEMP.timestamp = timestamp
@@ -250,7 +251,6 @@ class data_header(object):
 
 if __name__ == '__main__':
     serv = data_server()
-
     # Signal handler
     # --------------
     def signal_handler(num, flame):

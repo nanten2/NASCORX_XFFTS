@@ -20,6 +20,7 @@ class data_client(object):
 
     def __init__(self, synctime=0.1):
         self.synctime = synctime
+        rospy.init_node('XFFTS')
         pass
 
     def index_search(self, start, mode):
@@ -48,7 +49,7 @@ class data_client(object):
                 start_arg = round(start,1)
             elif mode == 'temp':
                 unixlist = self.btemp_unixlist
-                start_arg = round(start,1)
+                start_arg = round(start)
             index = unixlist.index(start_arg)
 
         return index
@@ -77,7 +78,6 @@ class data_client(object):
     # Spectrum Func
     # -------------
     def spec(self):
-        rospy.init_node('XFFTS')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.spec_run)
         rospy.spin()
 
@@ -235,7 +235,6 @@ class data_client(object):
     # Continuum Func
     # --------------
     def conti(self):
-        rospy.init_node('XFFTS_CONTI')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.conti_run)
         rospy.spin()
 
@@ -247,14 +246,14 @@ class data_client(object):
 
         conti = self.conti_oneshot(integtime, repeat, start)
         
-        unixtime = spec[1]
-        spectrum = numpy.array(spec[2])
-
-        for i in range(numpy.shape(spectrum)[1]):
-            hdu1 = fits.PrimaryHDU(unixtime)
-            hdu2 = fits.ImageHDU(spectrum[:, i, :])
-            hdulist = fits.HDUList([hdu1, hdu2])
-            hdulist.writeto(dir+'conti_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
+        unixtime = conti[1]
+        spectrum = numpy.array(conti[2])
+        
+        hdu1 = fits.PrimaryHDU(unixtime)
+        hdu2 = fits.ImageHDU(spectrum)
+        hdulist = fits.HDUList([hdu1, hdu2])
+        hdulist.writeto(dir+'conti_{}-{}_{}.fits'.format(integtime, repeat, round(unixtime[0][0])))
+        
         return
 
     def conti_oneshot(self, integtime, repeat, start):
@@ -365,7 +364,6 @@ class data_client(object):
 
     # Board Temperature Func
     # ----------------------
-
     def btemp_oneshot(self, sec, start):
         """
         DESCRIPTION
@@ -408,7 +406,6 @@ class data_client(object):
         # subscribe data
         # --------------
         self.btemp_data_subscriber(sec=sec, waittime=waittime)
-
         # data sum
         # --------
         init_index = self.index_search(start=start, mode='temp')
@@ -425,12 +422,12 @@ class data_client(object):
         sub3 = rospy.Subscriber('XFFTS_TEMP', XFFTS_temp_msg, self.btemp_append)
         time.sleep(waittime+sec+1)
         sub3.unregister()
+        return
 
     def btemp_append(self, req):
         # Reform TimeStamp
         # ----------------
         unix_ret = round(req.timestamp)
-
         # append data to temporary list
         # -----------------------------
         data_temp = [req.TEMP_BE1, req.TEMP_BE2, req.TEMP_BE3, req.TEMP_BE4,
