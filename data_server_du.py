@@ -178,22 +178,6 @@ class data_server(object):
         =========
         Nothing.
         
-        RETURNS
-        =======
-        Nothing, but send values listed below to ROS subscriber.
-        1. XFFTS_SPEC : Send spectrum data
-            1. timestamp : XFFTS-format timestamp.
-                Type     : str
-                fmt      : '2017-10-20T09:34:13.9193PC  '
-            2. BE_num    : Number of Back End Board.
-                Number   : 1 - 16
-                Type     : int
-            3. SPEC_BE1-16 : The spectrum of each BE(1-16).
-                Type       : float list
-        2. XFFTS_PM : Send total power data(=continuum data).
-            1. timestamp : Same as above.
-            2. BE_num    : Same as above.
-            3. POWER_BE1-16 : The total counts of each BE(1-16).
         """
 
         # ROS setting
@@ -208,11 +192,9 @@ class data_server(object):
             # get data
             # --------
             timestamp = time.time()
-            temps = []
-            for i in range(16):
-                temp_data = random.randint(0,350)
-                temps.append(temp_data)
-            #print ("temp",temps)
+
+            temps = np.random.random_integers(low=0, high=350, size=(header.BE_num, 1))
+            print(temps)
             # ROS Data Trans
             # --------------
             XFFTS_TEMP.timestamp = timestamp
@@ -232,6 +214,10 @@ class data_server(object):
             XFFTS_TEMP.TEMP_BE14 = temps[13]
             XFFTS_TEMP.TEMP_BE15 = temps[14]
             XFFTS_TEMP.TEMP_BE16 = temps[15]
+            XFFTS_TEMP.TEMP_BE17 = temps[16]
+            XFFTS_TEMP.TEMP_BE18 = temps[17]
+            XFFTS_TEMP.TEMP_BE19 = temps[18]
+            XFFTS_TEMP.TEMP_BE20 = temps[19]
             pub3.publish(XFFTS_TEMP)
 
             time.sleep(1)

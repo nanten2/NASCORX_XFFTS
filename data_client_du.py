@@ -234,6 +234,28 @@ class data_client(object):
 
     # Continuum Func
     # --------------
+    def conti(self):
+        rospy.init_node('XFFTS_CONTI')
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.conti_run)
+        rospy.spin()
+
+    def conti_run(self, req):
+        integtime = req.integtime
+        repeat = req.repeat
+        synctime = req.synctime
+        start = req.timestamp + req.rugtime
+
+        conti = self.conti_oneshot(integtime, repeat, start)
+        
+        unixtime = spec[1]
+        spectrum = numpy.array(spec[2])
+
+        for i in range(numpy.shape(spectrum)[1]):
+            hdu1 = fits.PrimaryHDU(unixtime)
+            hdu2 = fits.ImageHDU(spectrum[:, i, :])
+            hdulist = fits.HDUList([hdu1, hdu2])
+            hdulist.writeto(dir+'conti_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
+        return
 
     def conti_oneshot(self, integtime, repeat, start):
         """
@@ -288,9 +310,8 @@ class data_client(object):
             spectrum.append((numpy.average(self.conti_data[start:fin], axis=0)))
             timelist.append(self.conti_timestamp[start:fin])
             unixlist.append(self.conti_unixlist[start:fin])
-        self.conti_data = [timelist, unixlist, spectrum]
-
-        return
+        
+        return [timelist, unixlist, spectrum]
 
     def conti_data_subscriber(self, integtime, repeat, waittime):
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
@@ -398,7 +419,6 @@ class data_client(object):
             pass
         unixlist = self.btemp_unixlist[init_index:fin_index]
         templist = self.btemp_data[init_index:fin_index]
-        print("unixlist's length: ",len(self.btemp_unixlist))
         return [unixlist, templist]
 
     def btemp_data_subscriber(self, sec, waittime):
