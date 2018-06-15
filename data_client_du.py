@@ -7,6 +7,7 @@ import calendar
 import datetime
 import threading
 import astropy.io.fits as fits
+import matplotlib.pyplot as plt
 
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
@@ -14,6 +15,7 @@ from NASCORX_XFFTS.msg import XFFTS_temp_msg
 from NASCORX_XFFTS.msg import XFFTS_para_msg
 
 dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
+dir1 = '/home/amigos/ros/src/NASCORX_XFFTS/data_spec/'
 
 class data_client(object):
     synctime = 0.1
@@ -95,8 +97,16 @@ class data_client(object):
         for i in range(numpy.shape(spectrum)[1]):
             hdu1 = fits.PrimaryHDU(unixtime)
             hdu2 = fits.ImageHDU(spectrum[:, i, :])
+            plt.plot(hdu2[0])
             hdulist = fits.HDUList([hdu1, hdu2])
             hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
+        
+        plt.title("spec", loc='center')
+        plt.xlabel("Channel")
+        plt.ylabel("Power")
+        plt.xlim(0, 32768)
+        plt.savefig(dir1+'XFFTS_spec_graph.png')
+
         return
 
     def oneshot(self, integtime, repeat, start):
