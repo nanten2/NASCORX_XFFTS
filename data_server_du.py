@@ -194,7 +194,6 @@ class data_server(object):
             # get data
             # --------
             timestamp = time.time()
-            print(timestamp)
             temps = np.random.random_integers(low=0, high=350, size=(header.BE_num, 1))
             # ROS Data Trans
             # --------------

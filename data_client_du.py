@@ -364,6 +364,17 @@ class data_client(object):
 
     # Board Temperature Func
     # ----------------------
+    def btemp(self, sec=1, start = time.time()+5):
+        btemp = self.btemp_oneshot(sec, start)
+        
+        """
+        unixtime = btemp[0]
+        data = btemp[1]
+        hdu1 = fits.PrimaryHDU(unixtime)
+        hdu2 = fits.ImageHDU(data)
+        hdulist = fits.HDUList([hdu1, hdu2])
+        """
+
     def btemp_oneshot(self, sec, start):
         """
         DESCRIPTION
