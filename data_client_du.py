@@ -7,6 +7,8 @@ import calendar
 import datetime
 import threading
 import astropy.io.fits as fits
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 from NASCORX_XFFTS.msg import XFFTS_msg
@@ -261,7 +263,8 @@ class data_client(object):
         unixtime = conti[1]
         continuum = numpy.array(conti[2])
         
-        plt.plot(unixtime[0], continuum[0])
+        plt.plot(unixtime[0][0], continuum[0])
+        
         plt.title("conti", loc='center')
         plt.xlabel("Time[s]")
         plt.ylabel("Conti")
