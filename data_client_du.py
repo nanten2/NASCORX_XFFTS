@@ -16,6 +16,8 @@ from NASCORX_XFFTS.msg import XFFTS_para_msg
 
 dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
 dir1 = '/home/amigos/ros/src/NASCORX_XFFTS/data_spec/'
+dir2 = '/home/amigos/ros/src/NASCORX_XFFTS/data_conti/'
+dir3 = '/home/amigos/ros/src/NASCORX_XFFTS/data_btemp'
 
 class data_client(object):
     synctime = 0.1
@@ -257,12 +259,13 @@ class data_client(object):
         conti = self.conti_oneshot(integtime, repeat, start)
         
         unixtime = conti[1]
-        spectrum = numpy.array(conti[2])
+        continuum = numpy.array(conti[2])
         
-        hdu1 = fits.PrimaryHDU(unixtime)
-        hdu2 = fits.ImageHDU(spectrum)
-        hdulist = fits.HDUList([hdu1, hdu2])
-        hdulist.writeto(dir+'conti_{}-{}_{}.fits'.format(integtime, repeat, round(unixtime[0][0])))
+        plt.plot(unixtime[0], continuum[0])
+        plt.title("conti", loc='center')
+        plt.xlabel("Time[s]")
+        plt.ylabel("Conti")
+        plt.savefig(dir2+'XFFTS_conti_graph.png')
         
         return
 
@@ -377,13 +380,20 @@ class data_client(object):
     def btemp(self, sec=1, start = time.time()+5):
         btemp = self.btemp_oneshot(sec, start)
         
-        """
         unixtime = btemp[0]
         data = btemp[1]
         hdu1 = fits.PrimaryHDU(unixtime)
         hdu2 = fits.ImageHDU(data)
         hdulist = fits.HDUList([hdu1, hdu2])
-        """
+        hdulist.writeto(dir,'btemp_{}.fits'.format(round(unixtime[0][0])))
+        
+        plt.plot(unixtime[0], data[0])
+        plt.title("btemp", loc='center')
+        plt.xlabel("Time[s]")
+        plt.ylabel("Temp[K]")
+        plt.savefig(dir3+'XFFTS_btemp_graph.png')
+
+        return
 
     def btemp_oneshot(self, sec, start):
         """
