@@ -102,7 +102,7 @@ class data_server(object):
             print(timestamp, BE_num)
             
             #make data
-            spec = np.random.random_integers(low=1, high=10000, size=(header.BE_num, 32768))
+            spec = np.random.normal(5000, 2000, (header.BE_num, 32768))
             pow = np.sum(spec, axis=1)
 
             # ROS Data Trans
@@ -194,7 +194,7 @@ class data_server(object):
             # get data
             # --------
             timestamp = time.time()
-            temps = np.random.random_integers(low=0, high=350, size=(header.BE_num, 1))
+            temps = np.random.normal(150, 50, header.BE_num)
             # ROS Data Trans
             # --------------
             XFFTS_TEMP.timestamp = timestamp
