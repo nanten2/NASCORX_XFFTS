@@ -136,13 +136,15 @@ class data_client(object):
             hdulist = fits.HDUList([hdu1, hdu2])
             hdulist.writeto(dir+'spec_{}-{}_{}.fits'.format(integtime, repeat, round(unixtime[0][0])))
             
-            plt.figure()
-            plt.plot(spectrum[0, 0, :])
-            plt.title("spec_BE1", loc='center')
-            plt.xlabel("Channel")
-            plt.ylabel("Power")
-            plt.xlim(0, 32768)
-            plt.savefig(dir1+'XFFTS_spec_graph.png')
+            for i in range(numpy.shape(spectrum)[1]):
+                plt.figure()
+                plt.plot(spectrum[0, i, :])
+                plt.title("spec_BE{}".format(i+1), loc='center')
+                plt.xlabel("Channel")
+                plt.ylabel("Power")
+                plt.xlim(0, 32768)
+                plt.savefig(dir1+'XFFTS_spec_graph_BE{}.png'.format(i+1))
+                plt.close()
             
             start = time.time() + req.rugtime + 0.1
         return
