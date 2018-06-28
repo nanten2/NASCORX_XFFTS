@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang = "ja">
+    <head>
+        <meta charset = "UTF-8">
+        <title> XFFTS_monitor </title>
+        <meta name = "robots" content = "noindex, nofollow">
+        <link rel = "stylesheet" href = "monitor.css">
+    </head>
+    <body>
+        <header>
+            <h1> XFFTS_monitor </h1>
+        </header>
+        
+        <main>
+            
+            <div id = "spec">
+                <div class = "title">
+                    <h2> Spectrum </h2>
+                </div>
+
+                <ul class = "spec_graph">
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE1.png" alt = "spec_BE1" onload="reloadimg(this,5000,1)" ></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE2.png" alt = "spec_BE2" ></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE3.png" alt = "spec_BE3" ></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE4.png" alt = "spec_BE4" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE5.png" alt = "spec_BE5" /></p>
+                    </li>
+                </ul>
+                <ul class = "spec_graph">
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE6.png" alt = "spec_BE6" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE7.png" alt = "spec_BE7" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE8.png" alt = "spec_BE8" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE9.png" alt = "spec_BE9" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE10.png" alt = "spec_BE10" /></p>
+                    </li>
+                </ul>
+                <ul class = "spec_graph">
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE11.png" alt = "spec_BE11" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE12.png" alt = "spec_BE12" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE13.png" alt = "spec_BE13" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE14.png" alt = "spec_BE14" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE15.png" alt = "spec_BE15" /></p>
+                    </li>
+                </ul>
+                <ul class = "spec_graph">
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE16.png" alt = "spec_BE16" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE17.png" alt = "spec_BE17" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE18.png" alt = "spec_BE18" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE19.png" alt = "spec_BE19" /></p>
+                    </li>
+                    <li>
+                        <p class = "resize"><img src = "../data_spec/XFFTS_spec_graph_BE20.png" alt = "spec_BE20" /></p>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div id = "conti">
+                <div class = "title">
+                    <h2> Continuum </h2>
+                </div>
+
+                <div class = "graph">
+                    <p class = "resize2"><img src = "../data_conti/XFFTS_conti_graph.png" alt = "Continuum" /></p>
+                </div>
+            </div>
+            
+            <div id = "btemp">
+                <div class = "title">
+                    <h2> BE Temperature </h2>
+                </div>
+
+                <div class = "graph">
+                    <p class = "resize2"><img src = "../data_btemp/XFFTS_btemp_graph.png" alt = "backend temperature" /></p>
+                </div>
+            </div>
+
+            <div id = "any">
+                <div class = "title">
+                    <h2> None </h2>
+                </div>
+            </div>
+
+        </main>
+        <script type = "text/javascript">
+            function reloadimg(e, timer, i){
+                setTimeout(function(){
+                    e.src = "../data_spec/XFFTS_spec_graph_BE" + i + ".png?r=" + Math.random();
+                }, timer);
+            }
+        </script>
+
+    </body>
+</html>
