@@ -7,6 +7,9 @@ import calendar
 import datetime
 import threading
 import astropy.io.fits as fits
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
@@ -14,13 +17,15 @@ from NASCORX_XFFTS.msg import XFFTS_temp_msg
 from NASCORX_XFFTS.msg import XFFTS_para_msg
 
 dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
+dir1 = '/home/amigos/ros/src/NASCORX_XFFTS/data_spec/'
+dir2 = '/home/amigos/ros/src/NASCORX_XFFTS/data_conti/'
+dir3 = '/home/amigos/ros/src/NASCORX_XFFTS/data_btemp/'
 
 class data_client(object):
     synctime = 0.1
 
     def __init__(self, synctime=0.1):
         self.synctime = synctime
-        rospy.init_node('XFFTS')
         pass
 
     def index_search(self, start, mode):
@@ -50,8 +55,14 @@ class data_client(object):
             elif mode == 'temp':
                 unixlist = self.btemp_unixlist
                 start_arg = round(start)
-            index = unixlist.index(start_arg)
-
+            if mode == 'spec' or mode == 'conti':
+                try: index = unixlist.index(start_arg)
+                except ValueError :
+                    index = unixlist.index(round(start + 0.1, 1))
+            else:
+                try: index = unixlist.index(start_arg)
+                except ValueError :
+                    index = unixlist.index(start_arg + 1)
         return index
 
     def timestamp_to_unixtime(self, timestamp):
@@ -78,6 +89,7 @@ class data_client(object):
     # Spectrum Func
     # -------------
     def spec(self):
+        rospy.init_node('XFFTS_spec')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.spec_run)
         rospy.spin()
 
@@ -97,6 +109,51 @@ class data_client(object):
             hdu2 = fits.ImageHDU(spectrum[:, i, :])
             hdulist = fits.HDUList([hdu1, hdu2])
             hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
+        
+        plt.figure()
+        plt.plot(spectrum[0, 0, :])
+        plt.title("spec", loc='center')
+        plt.xlabel("Channel")
+        plt.ylabel("Power")
+        plt.xlim(0, 32768)
+        plt.savefig(dir1+'XFFTS_oneshot_graph.png')
+        
+        return
+
+
+    def con_spec(self):
+        rospy.init_node('XFFTS_spec')
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.con_spec_run)
+        rospy.spin()
+
+    def con_spec_run(self, req):
+        integtime = req.integtime
+        repeat = req.repeat
+        synctime = req.synctime
+        start = req.timestamp + req.rugtime
+        
+        while True:
+            spec = self.oneshot(integtime, repeat, start)
+            
+            unixtime = spec[1]
+            spectrum = numpy.array(spec[2])
+
+            hdu1 = fits.PrimaryHDU(unixtime)
+            hdu2 = fits.ImageHDU(spectrum[:,:,:])
+            hdulist = fits.HDUList([hdu1, hdu2])
+            hdulist.writeto(dir+'spec_{}-{}_{}.fits'.format(integtime, repeat, round(unixtime[0][0])))
+            
+            for i in range(numpy.shape(spectrum)[1]):
+                plt.figure()
+                plt.plot(spectrum[0, i, :])
+                plt.title("spec_BE{}".format(i+1), loc='center')
+                plt.xlabel("Channel")
+                plt.ylabel("Power")
+                plt.xlim(0, 32768)
+                plt.savefig(dir1+'XFFTS_spec_graph_BE{}.png'.format(i+1))
+                plt.close()
+            
+            start = time.time() + req.rugtime + 0.1
         return
 
     def oneshot(self, integtime, repeat, start):
@@ -235,6 +292,7 @@ class data_client(object):
     # Continuum Func
     # --------------
     def conti(self):
+        rospy.init_node('XFFTS_conti')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.conti_run)
         rospy.spin()
 
@@ -249,11 +307,46 @@ class data_client(object):
         unixtime = conti[1]
         spectrum = numpy.array(conti[2])
         
-        hdu1 = fits.PrimaryHDU(unixtime)
-        hdu2 = fits.ImageHDU(spectrum)
-        hdulist = fits.HDUList([hdu1, hdu2])
-        hdulist.writeto(dir+'conti_{}-{}_{}.fits'.format(integtime, repeat, round(unixtime[0][0])))
+        return
+
+    def con_conti(self):
+        rospy.init_node('XFFTS_conti')
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.con_conti_run)
+        rospy.spin()
+
+    def con_conti_run(self, req):
+        integtime = req.integtime
+        repeat = req.repeat
+        synctime = req.synctime
+        start = req.timestamp + req.rugtime
         
+        timelist = []
+        data = numpy.array([])
+        while True:
+            conti = self.conti_oneshot(integtime, repeat, start)
+            
+            unixtime = conti[1]
+            continuum = numpy.array(conti[2])
+            timelist.append(unixtime[0][0])
+            data = numpy.append(data, numpy.array(continuum[0]), axis=0)
+            if len(timelist) >= 5:
+                plt.figure()
+                data = numpy.reshape(data, (5, numpy.shape(continuum)[1]))
+                data = numpy.transpose(data)
+                for i in range(len(timelist)):
+                    plt.plot(timelist, data[i])
+                plt.title("Conti", loc='center')
+                plt.xlabel("Time[s]")
+                plt.ylabel("Power")
+                plt.savefig(dir2+'XFFTS_conti_graph.png')
+                plt.close()
+
+                timelist = []
+                data = numpy.array([])
+                start = time.time() + req.rugtime + 0.1
+            else:
+                start = time.time() + req.rugtime + 0.1
+                continue
         return
 
     def conti_oneshot(self, integtime, repeat, start):
@@ -365,15 +458,55 @@ class data_client(object):
     # Board Temperature Func
     # ----------------------
     def btemp(self, sec=1, start = time.time()+5):
+        rospy.init_node('XFFTS_btemp')
         btemp = self.btemp_oneshot(sec, start)
         
-        """
         unixtime = btemp[0]
         data = btemp[1]
         hdu1 = fits.PrimaryHDU(unixtime)
         hdu2 = fits.ImageHDU(data)
         hdulist = fits.HDUList([hdu1, hdu2])
-        """
+        hdulist.writeto(dir+'btemp_oneshot_{}.fits'.format(round(unixtime[0])))
+        
+        return
+
+
+    def con_btemp(self, sec=1, start = time.time()+5):
+        rospy.init_node('XFFTS_btemp')
+        timelist = []
+        temp = numpy.array([])
+
+        while True:
+            btemp = self.btemp_oneshot(sec, start)
+            
+            unixtime = btemp[0]
+            data = btemp[1]
+            hdu1 = fits.PrimaryHDU(unixtime)
+            hdu2 = fits.ImageHDU(data)
+            hdulist = fits.HDUList([hdu1, hdu2])
+            hdulist.writeto(dir+"XFFTS_btemp_{}.fits.".format(unixtime[0]))
+            
+            timelist.append(unixtime[0])
+            temp = numpy.append(temp, numpy.array(data[0]), axis=0)
+            if len(timelist) >= 5:
+                plt.figure()
+                temp = numpy.reshape(temp, (5, len(data[0])))
+                temp = numpy.transpose(temp)
+                for i in range(len(timelist)):
+                    plt.plot(timelist, temp[i])
+                plt.title("Btemp", loc='center')
+                plt.xlabel("Time[s]")
+                plt.ylabel("Temp[K]")
+                plt.savefig(dir3+'XFFTS_btemp_graph.png')
+                plt.close()
+
+                timelist = []
+                temp = numpy.array([])
+                start = None
+            else:
+                start = None
+                continue
+        return
 
     def btemp_oneshot(self, sec, start):
         """
@@ -412,11 +545,14 @@ class data_client(object):
         self.btemp_data = []
 
         if start is None or start == 0: waittime = 0
-        else: waittime = start - time.time()
+        else:
+            waittime = start - time.time()
+            waittime = abs(waittime)
 
         # subscribe data
         # --------------
         self.btemp_data_subscriber(sec=sec, waittime=waittime)
+        #print(self.btemp_unixlist) #forcheck
         # data sum
         # --------
         init_index = self.index_search(start=start, mode='temp')
@@ -444,8 +580,8 @@ class data_client(object):
         data_temp = [req.TEMP_BE1, req.TEMP_BE2, req.TEMP_BE3, req.TEMP_BE4,
                      req.TEMP_BE5, req.TEMP_BE6, req.TEMP_BE7, req.TEMP_BE8,
                      req.TEMP_BE9, req.TEMP_BE10, req.TEMP_BE11, req.TEMP_BE12,
-                     req.TEMP_BE13, req.TEMP_BE14, req.TEMP_BE15, req.TEMP_BE16,
-                     req.TEMP_BE17, req.TEMP_BE18, req.TEMP_BE19, req.TEMP_BE20]
+                     req.TEMP_BE13, req.TEMP_BE14, req.TEMP_BE15, req.TEMP_BE16]
+                     #req.TEMP_BE17, req.TEMP_BE18, req.TEMP_BE19, req.TEMP_BE20]
 
         # append return value
         # -------------------
