@@ -26,7 +26,6 @@ class data_client(object):
 
     def __init__(self, synctime=0.1):
         self.synctime = synctime
-        rospy.init_node('XFFTS')
         pass
 
     def index_search(self, start, mode):
@@ -56,9 +55,14 @@ class data_client(object):
             elif mode == 'temp':
                 unixlist = self.btemp_unixlist
                 start_arg = round(start)
-            try: index = unixlist.index(start_arg)
-            except ValueError :
-                index = unixlist.index(round(start + 0.1, 1))
+            if mode == 'spec' or mode == 'conti':
+                try: index = unixlist.index(start_arg)
+                except ValueError :
+                    index = unixlist.index(round(start + 0.1, 1))
+            else:
+                try: index = unixlist.index(start_arg)
+                except ValueError :
+                    index = unixlist.index(start_arg + 1)
         return index
 
     def timestamp_to_unixtime(self, timestamp):
@@ -85,6 +89,7 @@ class data_client(object):
     # Spectrum Func
     # -------------
     def spec(self):
+        rospy.init_node('XFFTS_spec')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.spec_run)
         rospy.spin()
 
@@ -116,6 +121,7 @@ class data_client(object):
         return
 
     def con_spec(self):
+        rospy.init_node('XFFTS_spec')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.con_spec_run)
         rospy.spin()
 
@@ -284,6 +290,7 @@ class data_client(object):
     # Continuum Func
     # --------------
     def conti(self):
+        rospy.init_node('XFFTS_conti')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.conti_run)
         rospy.spin()
 
@@ -310,6 +317,7 @@ class data_client(object):
         return
 
     def con_conti(self):
+        rospy.init_node('XFFTS_conti')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.con_conti_run)
         rospy.spin()
 
@@ -338,7 +346,8 @@ class data_client(object):
                 plt.xlabel("Time[s]")
                 plt.ylabel("Power")
                 plt.savefig(dir2+'XFFTS_conti_graph.png')
-                
+                plt.close()
+
                 timelist = []
                 data = numpy.array([])
                 start = time.time() + req.rugtime + 0.1
@@ -457,6 +466,7 @@ class data_client(object):
     # Board Temperature Func
     # ----------------------
     def btemp(self, sec=1, start = time.time()+5):
+        rospy.init_node('XFFTS_btemp')
         btemp = self.btemp_oneshot(sec, start)
         
         unixtime = btemp[0]
@@ -475,7 +485,8 @@ class data_client(object):
         """
         return
     
-    def con_btemp(self, sec=1, start = time.time() + 5):
+    def con_btemp(self, sec=1, start = time.time()+5):
+        rospy.init_node('XFFTS_btemp')
         timelist = []
         temp = numpy.array([])
 
@@ -501,7 +512,8 @@ class data_client(object):
                 plt.xlabel("Time[s]")
                 plt.ylabel("Temp[K]")
                 plt.savefig(dir3+'XFFTS_btemp_graph.png')
-                
+                plt.close()
+
                 timelist = []
                 temp = numpy.array([])
                 start = None
@@ -547,11 +559,14 @@ class data_client(object):
         self.btemp_data = []
 
         if start is None or start == 0: waittime = 0
-        else: waittime = start - time.time()
+        else:
+            waittime = start - time.time()
+            waittime = abs(waittime)
 
         # subscribe data
         # --------------
         self.btemp_data_subscriber(sec=sec, waittime=waittime)
+        #print(self.btemp_unixlist) #forcheck
         # data sum
         # --------
         init_index = self.index_search(start=start, mode='temp')
