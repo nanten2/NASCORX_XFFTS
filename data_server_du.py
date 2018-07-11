@@ -10,7 +10,7 @@ import threading
 import random
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
-from NASCORX_XFFTS.msg import XFFTS_temp_msg
+from NASCORX_XFFTS.msg import XFFTS_temp_msg_du
 
 
 class data_server(object):
@@ -184,8 +184,8 @@ class data_server(object):
 
         # ROS setting
         # -----------
-        pub3 = rospy.Publisher('XFFTS_TEMP', XFFTS_temp_msg, queue_size=10)
-        XFFTS_TEMP = XFFTS_temp_msg()
+        pub3 = rospy.Publisher('XFFTS_TEMP', XFFTS_temp_msg_du, queue_size=10)
+        XFFTS_TEMP = XFFTS_temp_msg_du()
 
         while True:
 
