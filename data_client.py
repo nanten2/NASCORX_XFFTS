@@ -85,7 +85,24 @@ class data_client(object):
         t = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fPC  ')
         unixtime = calendar.timegm(t.timetuple()) + t.microsecond / 1e6
         return unixtime
+    """Sealed
+    # Master Func
+    # -------------
+    def xffts(self):
+        th_spec = threading.Thread(target = self.con_spec())
+        th_spec.setDaemon(True)
+        th_spec.start()
 
+        th_conti = threading.Thread(target = self.con_conti())
+        th_conti.setDaemon(True)
+        th_conti.start()
+        
+        th_btemp = threading.Thread(target = self.con_btemp())
+        th_btemp.setDaemon(True)
+        th_btemp.start()
+
+        return
+    """
     # Spectrum Func
     # -------------
     def spec(self):
@@ -102,6 +119,7 @@ class data_client(object):
         spec = self.oneshot(integtime, repeat, start)
 
         unixtime = spec[1]
+        print(unixtime)
         spectrum = numpy.array(spec[2])
 
         for i in range(numpy.shape(spectrum)[1]):
@@ -114,7 +132,7 @@ class data_client(object):
         plt.plot(spectrum[0, 0, :])
         plt.title("spec", loc='center')
         plt.xlabel("Channel")
-        plt.ylabel("Power")
+        plt.ylabel("Count")
         plt.xlim(0, 32768)
         plt.savefig(dir1+'XFFTS_oneshot_graph.png')
         
@@ -132,9 +150,9 @@ class data_client(object):
         synctime = req.synctime
         start = req.timestamp + req.rugtime
         
-        while True:
+        while not rospy.is_shutdown():
             spec = self.oneshot(integtime, repeat, start)
-            
+            print("SPEC running...")
             unixtime = spec[1]
             spectrum = numpy.array(spec[2])
 
@@ -148,7 +166,7 @@ class data_client(object):
                 plt.plot(spectrum[0, i, :])
                 plt.title("spec_BE{}".format(i+1), loc='center')
                 plt.xlabel("Channel")
-                plt.ylabel("Power")
+                plt.ylabel("Count")
                 plt.xlim(0, 32768)
                 plt.savefig(dir1+'XFFTS_spec_graph_BE{}.png'.format(i+1))
                 plt.close()
@@ -210,7 +228,7 @@ class data_client(object):
         # subscribe data
         # --------------
         self.data_subscriber(integtime=integtime, repeat=repeat, waittime=waittime)
-
+        #print(self.unixlist)
         # data integration
         # ----------------
         spectrum = []
@@ -322,8 +340,9 @@ class data_client(object):
         
         timelist = []
         data = numpy.array([])
-        while True:
+        while not rospy.is_shutdown():
             conti = self.conti_oneshot(integtime, repeat, start)
+            print("Conti running...")
             
             unixtime = conti[1]
             continuum = numpy.array(conti[2])
@@ -333,11 +352,13 @@ class data_client(object):
                 plt.figure()
                 data = numpy.reshape(data, (5, numpy.shape(continuum)[1]))
                 data = numpy.transpose(data)
-                for i in range(len(timelist)):
-                    plt.plot(timelist, data[i])
+                for i in range(len(data)):
+                    plt.plot(timelist, data[i], label = "BE_{}".format(i+1))
                 plt.title("Conti", loc='center')
                 plt.xlabel("Time[s]")
-                plt.ylabel("Power")
+                plt.ylabel("Sum")
+                #plt.ylim([0,]) please set upper limit
+                plt.legend(loc = "upper right")
                 plt.savefig(dir2+'XFFTS_conti_graph.png')
                 plt.close()
 
@@ -389,7 +410,7 @@ class data_client(object):
         # subscribe data
         # --------------
         self.conti_data_subscriber(integtime=integtime, repeat=repeat, waittime=waittime)
-
+        #print(self.conti_unixlist)
         # data integration
         # ----------------
         spectrum = []
@@ -462,12 +483,14 @@ class data_client(object):
         btemp = self.btemp_oneshot(sec, start)
         
         unixtime = btemp[0]
+        print(unixtime)
         data = btemp[1]
+        """
         hdu1 = fits.PrimaryHDU(unixtime)
         hdu2 = fits.ImageHDU(data)
         hdulist = fits.HDUList([hdu1, hdu2])
         hdulist.writeto(dir+'btemp_oneshot_{}.fits'.format(round(unixtime[0])))
-        
+        """
         return
 
 
@@ -476,14 +499,32 @@ class data_client(object):
         timelist = []
         temp = numpy.array([])
 
-        while True:
+        while not rospy.is_shutdown():
             btemp = self.btemp_oneshot(sec, start)
-            
+            print("Btemp running...")
+
             unixtime = btemp[0]
             data = btemp[1]
-            hdu1 = fits.PrimaryHDU(unixtime)
-            hdu2 = fits.ImageHDU(data)
-            hdulist = fits.HDUList([hdu1, hdu2])
+            
+            hdu = fits.PrimaryHDU(unixtime)
+            hdu1 = fits.ImageHDU(data[0][0])
+            hdu2 = fits.ImageHDU(data[0][1])
+            hdu3 = fits.ImageHDU(data[0][2])
+            hdu4 = fits.ImageHDU(data[0][3])
+            hdu5 = fits.ImageHDU(data[0][4])
+            hdu6 = fits.ImageHDU(data[0][5])
+            hdu7 = fits.ImageHDU(data[0][6])
+            hdu8 = fits.ImageHDU(data[0][7])
+            hdu9 = fits.ImageHDU(data[0][8])
+            hdu10 = fits.ImageHDU(data[0][9])
+            hdu11 = fits.ImageHDU(data[0][10])
+            hdu12 = fits.ImageHDU(data[0][11])
+            hdu13 = fits.ImageHDU(data[0][12])
+            hdu14 = fits.ImageHDU(data[0][13])
+            hdu15 = fits.ImageHDU(data[0][14])
+            hdu16 = fits.ImageHDU(data[0][15])
+            hdulist = fits.HDUList([hdu, hdu1, hdu2, hdu3, hdu4, hdu5, hdu6, hdu7, hdu8,
+            hdu9, hdu10, hdu11, hdu12, hdu13, hdu14, hdu15, hdu16])
             hdulist.writeto(dir+"XFFTS_btemp_{}.fits.".format(unixtime[0]))
             
             timelist.append(unixtime[0])
@@ -492,11 +533,16 @@ class data_client(object):
                 plt.figure()
                 temp = numpy.reshape(temp, (5, len(data[0])))
                 temp = numpy.transpose(temp)
-                for i in range(len(timelist)):
-                    plt.plot(timelist, temp[i])
+                for i in range(len(temp)):
+                    temp_data = []
+                    for j in range(len(temp[i])):
+                        temp_data.append(temp[i][j][0])#代表値
+                    plt.plot(timelist, temp_data, label = "BE_{}".format(i+1))
                 plt.title("Btemp", loc='center')
                 plt.xlabel("Time[s]")
-                plt.ylabel("Temp[K]")
+                plt.ylabel("Temp[C]")
+                plt.ylim([0,100])
+                plt.legend(loc = "upper right")
                 plt.savefig(dir3+'XFFTS_btemp_graph.png')
                 plt.close()
 

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
-from NASCORX_XFFTS.msg import XFFTS_temp_msg
+from NASCORX_XFFTS.msg import XFFTS_temp_msg_du
 from NASCORX_XFFTS.msg import XFFTS_para_msg
 
 dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
@@ -580,7 +580,7 @@ class data_client(object):
         return [unixlist, templist]
 
     def btemp_data_subscriber(self, sec, waittime):
-        sub3 = rospy.Subscriber('XFFTS_TEMP', XFFTS_temp_msg, self.btemp_append)
+        sub3 = rospy.Subscriber('XFFTS_TEMP', XFFTS_temp_msg_du, self.btemp_append)
         time.sleep(waittime+sec+1)
         sub3.unregister()
         return
