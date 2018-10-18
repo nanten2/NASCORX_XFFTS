@@ -2,25 +2,75 @@
 
 import sys
 import time
-from datetime import datetime
 import rospy
-import numpy as np
+import std_msgs.msg
+import numpy
+import socket
+import struct
 import signal
 import threading
-import random
-from NASCORX_XFFTS.msg import XFFTS_msg
-from NASCORX_XFFTS.msg import XFFTS_pm_msg
-from NASCORX_XFFTS.msg import XFFTS_temp_msg_du
 
+sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS')
+import udp_client
+
+from nascorx_xffts.msg import XFFTS_pm_msg
+from nascorx_xffts.msg import XFFTS_temp_msg
 
 class data_server(object):
     header_size = 64
     BE_num_Max = 20
+    _sock = None
     _stop_loop = False
 
-    def __init__(self):
+    def __init__(self, host='localhost', port=25144):
+        self.connect(host, port)
         rospy.init_node('XFFTS_data_server')
         pass
+
+    def connect(self, host, port):
+        print('Create New Socket: host={}, port={}'.format(host, port))
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((host, port))
+        self._sock = sock
+        return
+
+    def recv_header(self):
+        """
+        DESCRIPTION
+        ===========
+        This function receives and returns XFFTS data header.
+
+        ARGUMENTS
+        =========
+        Nothing.
+
+        RETURNS
+        =======
+        See "data_header" class.
+        """
+        header = self._sock.recv(self.header_size)
+        return data_header(header)
+
+    def recv_data(self, data_size):
+        """
+        DESCRIPTION
+        ===========
+        This function receives and returns XFFTS data.
+
+        ARGUMENTS
+        =========
+        1. data_size  : Data size of XFFTS output. Maybe changing as BE_num changes.
+             Type     : int
+             Default  : Nothing.
+             example  : header.data_size
+
+        RETURNS
+        =======
+        1. data : The XFFTS spectrum in binary format.
+            Type : binary
+        """
+        data = self._sock.recv(data_size, socket.MSG_WAITALL)
+        return data
 
     def stop_loop(self):
         """
@@ -48,7 +98,7 @@ class data_server(object):
         DESCRIPTION
         ===========
         This is the master function of this class.
-        This function makes data like XFFTS's by ROS method.
+        This function relays XFFTS data from XFFTS to FAC by ROS method.
         When you stop the loop, call stop_loop function.
 
         ARGUMENTS
@@ -82,12 +132,16 @@ class data_server(object):
 
         # ROS setting
         # -----------
-        pub = rospy.Publisher('XFFTS_SPEC', XFFTS_msg, queue_size=10)
+        pub = []
+        for i in range(1, 21):
+            pub_ = rospy.Publisher('XFFTS_SPEC%d'%(i), std_msgs.msg.Float64MultiArray, queue_size=10)
+            pub.append(pub_)
+            continue
+        
         pub2 = rospy.Publisher('XFFTS_PM', XFFTS_pm_msg, queue_size=10)             # PM = Power Meter
-        XFFTS_SPEC = XFFTS_msg()
         XFFTS_PM = XFFTS_pm_msg()
 
-        # data making loop
+        # data relaying loop
         # ------------------
         while True:
 
@@ -95,42 +149,42 @@ class data_server(object):
 
             # get data
             # --------
-            header = data_header()
-            
-            timestamp = header.timestamp
-            BE_num = header.BE_num
-            print(timestamp, BE_num)
-            
-            #make data
-            spec = np.random.normal(5000, 2000, (header.BE_num, 32768))
-            pow = np.sum(spec, axis=1)
+            header = self.recv_header()
+            rawdata = self.recv_data(header.data_size)
+            timestamp = header.timestamp.decode('utf-8')
+            BE_num = header.BE_num                                                  # BE_num = BE_num_temp
+            print(header.timestamp, header.BE_num)
+
+            # binary to float conversion
+            # --------------------------
+            spec = []
+            pow = []
+            counter = 0
+            for i in range(self.BE_num_Max):
+                # For Available BE
+                if i+1 <= header.BE_num:
+                    BE_num_temp, ch_num = struct.unpack('2I', rawdata[counter:counter+8])
+                    data_temp = list(struct.unpack('{}f'.format(ch_num), rawdata[counter+8:counter+8+ch_num*4]))
+                    pow_temp = sum(data_temp)
+                    spec.append(data_temp)
+                    pow.append(pow_temp)
+                    counter += 8 + ch_num * 4
+                # For Unavailable BE
+                elif header.BE_num <= i+1:
+                    spec.append([0])
+                    pow.append(0)
+            #s1 = spec[0]
+            #s2 = spec[1]
+
+            #print(s1[10])
+            #print(s2[10])
 
             # ROS Data Trans
             # --------------
             # Spectrum
-            XFFTS_SPEC.timestamp = timestamp
-            XFFTS_SPEC.BE_num = BE_num
-            XFFTS_SPEC.SPEC_BE1 = spec[0]
-            XFFTS_SPEC.SPEC_BE2 = spec[1]
-            XFFTS_SPEC.SPEC_BE3 = spec[2]
-            XFFTS_SPEC.SPEC_BE4 = spec[3]
-            XFFTS_SPEC.SPEC_BE5 = spec[4]
-            XFFTS_SPEC.SPEC_BE6 = spec[5]
-            XFFTS_SPEC.SPEC_BE7 = spec[6]
-            XFFTS_SPEC.SPEC_BE8 = spec[7]
-            XFFTS_SPEC.SPEC_BE9 = spec[8]
-            XFFTS_SPEC.SPEC_BE10 = spec[9]
-            XFFTS_SPEC.SPEC_BE11 = spec[10]
-            XFFTS_SPEC.SPEC_BE12 = spec[11]
-            XFFTS_SPEC.SPEC_BE13 = spec[12]
-            XFFTS_SPEC.SPEC_BE14 = spec[13]
-            XFFTS_SPEC.SPEC_BE15 = spec[14]
-            XFFTS_SPEC.SPEC_BE16 = spec[15]
-            XFFTS_SPEC.SPEC_BE17 = spec[16]
-            XFFTS_SPEC.SPEC_BE18 = spec[17]
-            XFFTS_SPEC.SPEC_BE19 = spec[18]
-            XFFTS_SPEC.SPEC_BE20 = spec[19]
-            pub.publish(XFFTS_SPEC)
+            for i in range(0,20):
+                pub[i].publish(spec[i])
+                continue
 
             # total power
             XFFTS_PM.timestamp = timestamp
@@ -171,21 +225,40 @@ class data_server(object):
         DESCRIPTION
         ===========
         This is the master function of this class.
-        This function makes date of XFFTS Board temperature to FAC by ROS method.
+        This function relays XFFTS Board temperature from XFFTS to FAC by ROS method.
         When you stop the loop, call stop_loop function.
 
         ARGUMENTS
         =========
         Nothing.
-        
+
+        RETURNS
+        =======
+        Nothing, but send values listed below to ROS subscriber.
+        1. XFFTS_SPEC : Send spectrum data
+            1. timestamp : XFFTS-format timestamp.
+                Type     : str
+                fmt      : '2017-10-20T09:34:13.9193PC  '
+            2. BE_num    : Number of Back End Board.
+                Number   : 1 - 16
+                Type     : int
+            3. SPEC_BE1-16 : The spectrum of each BE(1-16).
+                Type       : float list
+        2. XFFTS_PM : Send total power data(=continuum data).
+            1. timestamp : Same as above.
+            2. BE_num    : Same as above.
+            3. POWER_BE1-16 : The total counts of each BE(1-16).
         """
-        
-        header = data_header()
 
         # ROS setting
         # -----------
-        pub3 = rospy.Publisher('XFFTS_TEMP', XFFTS_temp_msg_du, queue_size=10)
-        XFFTS_TEMP = XFFTS_temp_msg_du()
+        pub3 = rospy.Publisher('XFFTS_TEMP', XFFTS_temp_msg, queue_size=10)
+        XFFTS_TEMP = XFFTS_temp_msg()
+
+        # define UDP connection
+        # ---------------------
+        udp = udp_client.udp_client()
+        udp.open()
 
         while True:
 
@@ -194,10 +267,19 @@ class data_server(object):
             # get data
             # --------
             timestamp = time.time()
-            temps = np.random.normal(150, 50, header.BE_num)
+            temps = udp.query_all_temperature()
+            used = udp.query_usedsections()
+
+            # data reform
+            # -----------
+            for i, temp in enumerate(temps):
+                if temp is None: temps[i] = [0]
+                else: pass
+
             # ROS Data Trans
             # --------------
             XFFTS_TEMP.timestamp = timestamp
+            #XFFTS_TEMP.USED_BE = used
             XFFTS_TEMP.TEMP_BE1 = temps[0]
             XFFTS_TEMP.TEMP_BE2 = temps[1]
             XFFTS_TEMP.TEMP_BE3 = temps[2]
@@ -214,10 +296,6 @@ class data_server(object):
             XFFTS_TEMP.TEMP_BE14 = temps[13]
             XFFTS_TEMP.TEMP_BE15 = temps[14]
             XFFTS_TEMP.TEMP_BE16 = temps[15]
-            XFFTS_TEMP.TEMP_BE17 = temps[16]
-            XFFTS_TEMP.TEMP_BE18 = temps[17]
-            XFFTS_TEMP.TEMP_BE19 = temps[18]
-            XFFTS_TEMP.TEMP_BE20 = temps[19]
             pub3.publish(XFFTS_TEMP)
 
             time.sleep(1)
@@ -236,20 +314,23 @@ class data_server(object):
 
 class data_header(object):
     header_size = 64
-    def __init__(self):
-        self.ieee= "EEEI"
-        self.data_format = "F   "
-        self.package_length = int(262224)
-        self.BE_name = "XFFTS"
-        self.timestamp = (datetime.now()).strftime('%Y-%m-%dT%H:%M:%S.%fPC  ')
-        self.integration_time = 998993
-        self.phase_number = int(1)
-        self.BE_num = int(20)   #BEの数を変えれる
-        self.blocking = int(1)
+
+    def __init__(self, header):
+        self.ieee = struct.unpack('<4s', header[0:4])[0]
+        self.data_format = struct.unpack('4s', header[4:8])[0]
+        self.package_length = struct.unpack('I', header[8:12])[0]
+        self.BE_name = struct.unpack('8s', header[12:20])[0]
+        self.timestamp = struct.unpack('28s', header[20:48])[0]
+        self.integration_time = struct.unpack('I', header[48:52])[0]
+        self.phase_number = struct.unpack('I', header[52:56])[0]
+        self.BE_num = struct.unpack('I', header[56:60])[0]
+        self.blocking = struct.unpack('I', header[60:64])[0]
+        self.data_size = self.package_length - self.header_size
         return
 
 if __name__ == '__main__':
     serv = data_server()
+
     # Signal handler
     # --------------
     def signal_handler(num, flame):

@@ -4,11 +4,12 @@ import sys
 import time
 from datetime import datetime
 import rospy
+import std_msgs.msg
 import numpy as np
 import signal
 import threading
 import random
-from NASCORX_XFFTS.msg import XFFTS_msg
+
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
 from NASCORX_XFFTS.msg import XFFTS_temp_msg_du
 
@@ -82,9 +83,13 @@ class data_server(object):
 
         # ROS setting
         # -----------
-        pub = rospy.Publisher('XFFTS_SPEC', XFFTS_msg, queue_size=10)
+        pub = []
+        for i in range(1, 21):
+            pub_ = rospy.Publisher('XFFTS_SPEC%d'%(i), std_msgs.msg.Float64MultiArray, queue_size=10)
+            pub.append(pub_)
+            continue
+        
         pub2 = rospy.Publisher('XFFTS_PM', XFFTS_pm_msg, queue_size=10)             # PM = Power Meter
-        XFFTS_SPEC = XFFTS_msg()
         XFFTS_PM = XFFTS_pm_msg()
 
         # data making loop
@@ -108,30 +113,10 @@ class data_server(object):
             # ROS Data Trans
             # --------------
             # Spectrum
-            XFFTS_SPEC.timestamp = timestamp
-            XFFTS_SPEC.BE_num = BE_num
-            XFFTS_SPEC.SPEC_BE1 = spec[0]
-            XFFTS_SPEC.SPEC_BE2 = spec[1]
-            XFFTS_SPEC.SPEC_BE3 = spec[2]
-            XFFTS_SPEC.SPEC_BE4 = spec[3]
-            XFFTS_SPEC.SPEC_BE5 = spec[4]
-            XFFTS_SPEC.SPEC_BE6 = spec[5]
-            XFFTS_SPEC.SPEC_BE7 = spec[6]
-            XFFTS_SPEC.SPEC_BE8 = spec[7]
-            XFFTS_SPEC.SPEC_BE9 = spec[8]
-            XFFTS_SPEC.SPEC_BE10 = spec[9]
-            XFFTS_SPEC.SPEC_BE11 = spec[10]
-            XFFTS_SPEC.SPEC_BE12 = spec[11]
-            XFFTS_SPEC.SPEC_BE13 = spec[12]
-            XFFTS_SPEC.SPEC_BE14 = spec[13]
-            XFFTS_SPEC.SPEC_BE15 = spec[14]
-            XFFTS_SPEC.SPEC_BE16 = spec[15]
-            XFFTS_SPEC.SPEC_BE17 = spec[16]
-            XFFTS_SPEC.SPEC_BE18 = spec[17]
-            XFFTS_SPEC.SPEC_BE19 = spec[18]
-            XFFTS_SPEC.SPEC_BE20 = spec[19]
-            pub.publish(XFFTS_SPEC)
-
+            for i in range(0,20):
+                pub[i].publish(spec[i])
+                continue
+            
             # total power
             XFFTS_PM.timestamp = timestamp
             XFFTS_PM.BE_num = BE_num

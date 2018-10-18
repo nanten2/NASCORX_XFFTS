@@ -9,7 +9,11 @@ import struct
 import signal
 import threading
 
+<<<<<<< HEAD
 sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS/')
+=======
+sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS')
+>>>>>>> df3de498c967bcdbb81695e56d262db6271fd6f2
 import udp_client
 
 from NASCORX_XFFTS.msg import XFFTS_msg
@@ -170,7 +174,15 @@ class data_server(object):
                 elif header.BE_num <= i+1:
                     spec.append([0])
                     pow.append(0)
+<<<<<<< HEAD
 
+=======
+            #s1 = spec[0]
+            #s2 = spec[1]
+
+            #print(s1[10])
+            #print(s2[10])
+>>>>>>> df3de498c967bcdbb81695e56d262db6271fd6f2
 
             # ROS Data Trans
             # --------------

@@ -7,13 +7,19 @@ import calendar
 import datetime
 import threading
 import astropy.io.fits as fits
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
-from NASCORX_XFFTS.msg import XFFTS_temp_msg
+from NASCORX_XFFTS.msg import XFFTS_temp_msg_du
 from NASCORX_XFFTS.msg import XFFTS_para_msg
 
 dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
+dir1 = '/home/amigos/ros/src/NASCORX_XFFTS/data_spec/'
+dir2 = '/home/amigos/ros/src/NASCORX_XFFTS/data_conti/'
+dir3 = '/home/amigos/ros/src/NASCORX_XFFTS/data_btemp/'
 
 class data_client(object):
     synctime = 0.1
@@ -48,9 +54,15 @@ class data_client(object):
                 start_arg = round(start,1)
             elif mode == 'temp':
                 unixlist = self.btemp_unixlist
-                start_arg = round(start,1)
-            index = unixlist.index(start_arg)
-
+                start_arg = round(start)
+            if mode == 'spec' or mode == 'conti':
+                try: index = unixlist.index(start_arg)
+                except ValueError :
+                    index = unixlist.index(round(start + 0.1, 1))
+            else:
+                try: index = unixlist.index(start_arg)
+                except ValueError :
+                    index = unixlist.index(start_arg + 1)
         return index
 
     def timestamp_to_unixtime(self, timestamp):
@@ -77,7 +89,7 @@ class data_client(object):
     # Spectrum Func
     # -------------
     def spec(self):
-        rospy.init_node('XFFTS')
+        rospy.init_node('XFFTS_spec')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.spec_run)
         rospy.spin()
 
@@ -97,6 +109,50 @@ class data_client(object):
             hdu2 = fits.ImageHDU(spectrum[:, i, :])
             hdulist = fits.HDUList([hdu1, hdu2])
             hdulist.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
+        
+        plt.figure()
+        plt.plot(spectrum[0, 0, :])
+        plt.title("spec", loc='center')
+        plt.xlabel("Channel")
+        plt.ylabel("Power")
+        plt.xlim(0, 32768)
+        plt.savefig(dir1+'XFFTS_oneshot_graph.png')
+        
+        return
+
+    def con_spec(self):
+        rospy.init_node('XFFTS_spec')
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.con_spec_run)
+        rospy.spin()
+
+    def con_spec_run(self, req):
+        integtime = req.integtime
+        repeat = req.repeat
+        synctime = req.synctime
+        start = req.timestamp + req.rugtime
+        
+        while True:
+            spec = self.oneshot(integtime, repeat, start)
+            
+            unixtime = spec[1]
+            spectrum = numpy.array(spec[2])
+
+            hdu1 = fits.PrimaryHDU(unixtime)
+            hdu2 = fits.ImageHDU(spectrum[:,:,:])
+            hdulist = fits.HDUList([hdu1, hdu2])
+            hdulist.writeto(dir+'spec_{}-{}_{}.fits'.format(integtime, repeat, round(unixtime[0][0])))
+            
+            for i in range(numpy.shape(spectrum)[1]):
+                plt.figure()
+                plt.plot(spectrum[0, i, :])
+                plt.title("spec_BE{}".format(i+1), loc='center')
+                plt.xlabel("Channel")
+                plt.ylabel("Power")
+                plt.xlim(0, 32768)
+                plt.savefig(dir1+'XFFTS_spec_graph_BE{}.png'.format(i+1))
+                plt.close()
+            
+            start = time.time() + req.rugtime + 0.1
         return
 
     def oneshot(self, integtime, repeat, start):
@@ -153,7 +209,6 @@ class data_client(object):
         # subscribe data
         # --------------
         self.data_subscriber(integtime=integtime, repeat=repeat, waittime=waittime)
-
         # data integration
         # ----------------
         spectrum = []
@@ -235,7 +290,7 @@ class data_client(object):
     # Continuum Func
     # --------------
     def conti(self):
-        rospy.init_node('XFFTS_CONTI')
+        rospy.init_node('XFFTS_conti')
         sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.conti_run)
         rospy.spin()
 
@@ -247,15 +302,60 @@ class data_client(object):
 
         conti = self.conti_oneshot(integtime, repeat, start)
         
-        unixtime = spec[1]
-        spectrum = numpy.array(spec[2])
-
-        for i in range(numpy.shape(spectrum)[1]):
-            hdu1 = fits.PrimaryHDU(unixtime)
-            hdu2 = fits.ImageHDU(spectrum[:, i, :])
-            hdulist = fits.HDUList([hdu1, hdu2])
-            hdulist.writeto(dir+'conti_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, round(unixtime[0][0])))
+        unixtime = conti[1]
+        continuum = numpy.array(conti[2])
+        
+        """#useless, for check
+        plt.figure()
+        for i in range(numpy.shape(continuum)[1]):
+            plt.plot(unixtime[0][0], continuum[0][i], "o")
+        plt.title("conti", loc='center')
+        plt.xlabel("Time[s]")
+        plt.ylabel("Conti")
+        plt.savefig(dir2+'XFFTS_conti_oneshot_graph.png')
+        """
         return
+
+    def con_conti(self):
+        rospy.init_node('XFFTS_conti')
+        sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, self.con_conti_run)
+        rospy.spin()
+
+    def con_conti_run(self, req):
+        integtime = req.integtime
+        repeat = req.repeat
+        synctime = req.synctime
+        start = req.timestamp + req.rugtime
+        
+        timelist = []
+        data = numpy.array([])
+        while True:
+            conti = self.conti_oneshot(integtime, repeat, start)
+            
+            unixtime = conti[1]
+            continuum = numpy.array(conti[2])
+            timelist.append(unixtime[0][0])
+            data = numpy.append(data, numpy.array(continuum[0]), axis=0)
+            if len(timelist) >= 5:
+                plt.figure()
+                data = numpy.reshape(data, (5, numpy.shape(continuum)[1]))
+                data = numpy.transpose(data)
+                for i in range(len(timelist)):
+                    plt.plot(timelist, data[i])
+                plt.title("Conti", loc='center')
+                plt.xlabel("Time[s]")
+                plt.ylabel("Power")
+                plt.savefig(dir2+'XFFTS_conti_graph.png')
+                plt.close()
+
+                timelist = []
+                data = numpy.array([])
+                start = time.time() + req.rugtime + 0.1
+            else:
+                start = time.time() + req.rugtime + 0.1
+                continue
+        return
+
 
     def conti_oneshot(self, integtime, repeat, start):
         """
@@ -365,6 +465,62 @@ class data_client(object):
 
     # Board Temperature Func
     # ----------------------
+    def btemp(self, sec=1, start = time.time()+5):
+        rospy.init_node('XFFTS_btemp')
+        btemp = self.btemp_oneshot(sec, start)
+        
+        unixtime = btemp[0]
+        data = btemp[1]
+        hdu1 = fits.PrimaryHDU(unixtime)
+        hdu2 = fits.ImageHDU(data)
+        hdulist = fits.HDUList([hdu1, hdu2])
+        hdulist.writeto(dir+'btemp_oneshot_{}.fits'.format(round(unixtime[0])))
+        """#useless, for check
+        plt.figure()
+        plt.plot(unixtime[0], data[0])
+        plt.title("btemp", loc='center')
+        plt.xlabel("Time[s]")
+        plt.ylabel("Temp[K]")
+        plt.savefig(dir3+'XFFTS_btemp_oneshot_graph.png')
+        """
+        return
+    
+    def con_btemp(self, sec=1, start = time.time()+5):
+        rospy.init_node('XFFTS_btemp')
+        timelist = []
+        temp = numpy.array([])
+
+        while True:
+            btemp = self.btemp_oneshot(sec, start)
+            
+            unixtime = btemp[0]
+            data = btemp[1]
+            hdu1 = fits.PrimaryHDU(unixtime)
+            hdu2 = fits.ImageHDU(data)
+            hdulist = fits.HDUList([hdu1, hdu2])
+            hdulist.writeto(dir+"XFFTS_btemp_{}.fits.".format(unixtime[0]))
+            
+            timelist.append(unixtime[0])
+            temp = numpy.append(temp, numpy.array(data[0]), axis=0)
+            if len(timelist) >= 5:
+                plt.figure()
+                temp = numpy.reshape(temp, (5, len(data[0])))
+                temp = numpy.transpose(temp)
+                for i in range(len(timelist)):
+                    plt.plot(timelist, temp[i])
+                plt.title("Btemp", loc='center')
+                plt.xlabel("Time[s]")
+                plt.ylabel("Temp[K]")
+                plt.savefig(dir3+'XFFTS_btemp_graph.png')
+                plt.close()
+
+                timelist = []
+                temp = numpy.array([])
+                start = None
+            else:
+                start = None
+                continue
+        return
 
     def btemp_oneshot(self, sec, start):
         """
@@ -403,12 +559,14 @@ class data_client(object):
         self.btemp_data = []
 
         if start is None or start == 0: waittime = 0
-        else: waittime = start - time.time()
+        else:
+            waittime = start - time.time()
+            waittime = abs(waittime)
 
         # subscribe data
         # --------------
         self.btemp_data_subscriber(sec=sec, waittime=waittime)
-
+        #print(self.btemp_unixlist) #forcheck
         # data sum
         # --------
         init_index = self.index_search(start=start, mode='temp')
@@ -422,15 +580,15 @@ class data_client(object):
         return [unixlist, templist]
 
     def btemp_data_subscriber(self, sec, waittime):
-        sub3 = rospy.Subscriber('XFFTS_TEMP', XFFTS_temp_msg, self.btemp_append)
+        sub3 = rospy.Subscriber('XFFTS_TEMP', XFFTS_temp_msg_du, self.btemp_append)
         time.sleep(waittime+sec+1)
         sub3.unregister()
+        return
 
     def btemp_append(self, req):
         # Reform TimeStamp
         # ----------------
         unix_ret = round(req.timestamp)
-
         # append data to temporary list
         # -----------------------------
         data_temp = [req.TEMP_BE1, req.TEMP_BE2, req.TEMP_BE3, req.TEMP_BE4,
