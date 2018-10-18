@@ -15,8 +15,4 @@ float64[] TEMP_BE13
 float64[] TEMP_BE14
 float64[] TEMP_BE15
 float64[] TEMP_BE16
-float64[] TEMP_BE17
-float64[] TEMP_BE18
-float64[] TEMP_BE19
-float64[] TEMP_BE20
 string from_node

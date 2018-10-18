@@ -9,12 +9,12 @@ import struct
 import signal
 import threading
 
-sys.path.append('/home/amigos/ros/src/NASCORX')
-from NASCORX_XFFTS import udp_client
+sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS/')
+import udp_client
 
-from NASCORX.msg import XFFTS_msg
-from NASCORX.msg import XFFTS_pm_msg
-from NASCORX.msg import XFFTS_temp_msg
+from NASCORX_XFFTS.msg import XFFTS_msg
+from NASCORX_XFFTS.msg import XFFTS_pm_msg
+from NASCORX_XFFTS.msg import XFFTS_temp_msg
 
 
 class data_server(object):
@@ -170,11 +170,7 @@ class data_server(object):
                 elif header.BE_num <= i+1:
                     spec.append([0])
                     pow.append(0)
-            s1 = spec[0]
-            s2 = spec[1]
 
-            print(s1[10])
-            print(s2[10])
 
             # ROS Data Trans
             # --------------
@@ -296,7 +292,7 @@ class data_server(object):
             # ROS Data Trans
             # --------------
             XFFTS_TEMP.timestamp = timestamp
-            XFFTS_TEMP.USED_BE = used
+            #XFFTS_TEMP.USED_BE = used
             XFFTS_TEMP.TEMP_BE1 = temps[0]
             XFFTS_TEMP.TEMP_BE2 = temps[1]
             XFFTS_TEMP.TEMP_BE3 = temps[2]
@@ -314,7 +310,7 @@ class data_server(object):
             XFFTS_TEMP.TEMP_BE15 = temps[14]
             XFFTS_TEMP.TEMP_BE16 = temps[15]
             pub3.publish(XFFTS_TEMP)
-
+            
             time.sleep(1)
         return
 
