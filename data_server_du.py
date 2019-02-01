@@ -8,9 +8,9 @@ import numpy as np
 import signal
 import threading
 import random
-from NASCORX_XFFTS.msg import XFFTS_msg
-from NASCORX_XFFTS.msg import XFFTS_pm_msg
-from NASCORX_XFFTS.msg import XFFTS_temp_msg_du
+from nascorx_xffts.msg import XFFTS_msg
+from nascorx_xffts.msg import XFFTS_pm_msg
+from nascorx_xffts.msg import XFFTS_temp_msg_du
 
 
 class data_server(object):

@@ -11,10 +11,10 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 
-from NASCORX_XFFTS.msg import XFFTS_msg
-from NASCORX_XFFTS.msg import XFFTS_pm_msg
-from NASCORX_XFFTS.msg import XFFTS_temp_msg
-from NASCORX_XFFTS.msg import XFFTS_para_msg
+from nascorx_xffts.msg import XFFTS_msg
+from nascorx_xffts.msg import XFFTS_pm_msg
+from nascorx_xffts.msg import XFFTS_temp_msg
+from nascorx_xffts.msg import XFFTS_para_msg
 
 dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
 dir1 = '/home/amigos/ros/src/NASCORX_XFFTS/data_spec/'
