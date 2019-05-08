@@ -96,10 +96,13 @@ class data_server(object):
             # get data
             # --------
             header = data_header()
-            
+
             timestamp = header.timestamp
+
+            tdatetime = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fPC ")
             BE_num = header.BE_num
-            print(timestamp, BE_num)
+            floattime = float(tdatetime.strftime('%s.%f'))
+            print(floattime, BE_num)
             
             #make data
             spec = np.random.normal(5000, 2000, (header.BE_num, 32768))
@@ -108,7 +111,7 @@ class data_server(object):
             # ROS Data Trans
             # --------------
             # Spectrum
-            XFFTS_SPEC.timestamp = timestamp
+            XFFTS_SPEC.timestamp = floattime
             XFFTS_SPEC.BE_num = BE_num
             XFFTS_SPEC.SPEC_BE1 = spec[0]
             XFFTS_SPEC.SPEC_BE2 = spec[1]
@@ -133,7 +136,7 @@ class data_server(object):
             pub.publish(XFFTS_SPEC)
 
             # total power
-            XFFTS_PM.timestamp = timestamp
+            XFFTS_PM.timestamp = floattime
             XFFTS_PM.BE_num = BE_num
             XFFTS_PM.POWER_BE1 = pow[0]
             XFFTS_PM.POWER_BE2 = pow[1]
