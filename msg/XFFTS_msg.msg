@@ -1,5 +1,5 @@
-float64 timestampin
-float64 timestampfl
+float64 timestampint
+float64 timestampdecimal
 int64 BE_num
 float64[] SPEC_BE1
 float64[] SPEC_BE2
