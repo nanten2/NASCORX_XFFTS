@@ -101,8 +101,8 @@ class data_server(object):
 
             tdatetime = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fPC ")
             BE_num = header.BE_num
-            timeint = int(tdatetime.strftime('%s'))
-            timedecimal = float(tdatetime.strftime('%s.%f')) - int(tdatetime.strftime('%s'))
+            time_int = int(tdatetime.strftime('%s'))
+            time_decimal = float(tdatetime.strftime('%s.%f')) - int(tdatetime.strftime('%s'))
             print(float(tdatetime.strftime('%s.%f')), BE_num)
             
             #make data
@@ -112,8 +112,8 @@ class data_server(object):
             # ROS Data Trans
             # --------------
             # Spectrum
-            XFFTS_SPEC.timestampint = timeint
-            XFFTS_SPEC.timestampdecimal = timedecimal
+            XFFTS_SPEC.timestamp_int = time_int
+            XFFTS_SPEC.timestamp_decimal = time_decimal
             XFFTS_SPEC.BE_num = BE_num
             XFFTS_SPEC.SPEC_BE1 = spec[0]
             XFFTS_SPEC.SPEC_BE2 = spec[1]
@@ -138,8 +138,8 @@ class data_server(object):
             pub.publish(XFFTS_SPEC)
 
             # total power
-            XFFTS_PM.timestampint = timeint
-            XFFTS_PM.timestampdecimal = timedecimal
+            XFFTS_PM.timestamp_int = time_int
+            XFFTS_PM.timestamp_decimal = time_decimal
             XFFTS_PM.BE_num = BE_num
             XFFTS_PM.POWER_BE1 = pow[0]
             XFFTS_PM.POWER_BE2 = pow[1]

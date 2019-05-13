@@ -1,5 +1,5 @@
-float64 timestampint
-float64 timestampdecimal
+float64 timestamp_int
+float64 timestamp_decimal
 int64 BE_num
 float64 POWER_BE1
 float64 POWER_BE2
