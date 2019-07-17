@@ -179,6 +179,7 @@ class data_server(object):
             # ROS Data Trans
             # --------------
             # Spectrum
+            timestamp = str(time.time())
             XFFTS_SPEC.timestamp = timestamp
             XFFTS_SPEC.BE_num = BE_num
             XFFTS_SPEC.SPEC_BE1 = spec[0]

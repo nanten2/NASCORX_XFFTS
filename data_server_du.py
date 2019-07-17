@@ -96,24 +96,18 @@ class data_server(object):
             # get data
             # --------
             header = data_header()
-
             timestamp = header.timestamp
-
-            tdatetime = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fPC ")
             BE_num = header.BE_num
-            time_int = int(tdatetime.strftime('%s'))
-            time_decimal = float(tdatetime.strftime('%s.%f')) - int(tdatetime.strftime('%s'))
-            print(float(tdatetime.strftime('%s.%f')), BE_num)
             
             #make data
             spec = np.random.normal(5000, 2000, (header.BE_num, 32768))
             pow = np.sum(spec, axis=1)
+            timestamp = str(time.time())
 
             # ROS Data Trans
             # --------------
-            # Spectrum
-            XFFTS_SPEC.timestamp_int = time_int
-            XFFTS_SPEC.timestamp_decimal = time_decimal
+            # Spectru
+            XFFTS_SPEC.timestamp = timestamp
             XFFTS_SPEC.BE_num = BE_num
             XFFTS_SPEC.SPEC_BE1 = spec[0]
             XFFTS_SPEC.SPEC_BE2 = spec[1]
@@ -138,8 +132,7 @@ class data_server(object):
             pub.publish(XFFTS_SPEC)
 
             # total power
-            XFFTS_PM.timestamp_int = time_int
-            XFFTS_PM.timestamp_decimal = time_decimal
+            XFFTS_PM.timestamp = timestamp
             XFFTS_PM.BE_num = BE_num
             XFFTS_PM.POWER_BE1 = pow[0]
             XFFTS_PM.POWER_BE2 = pow[1]
@@ -162,6 +155,7 @@ class data_server(object):
             XFFTS_PM.POWER_BE19 = pow[18]
             XFFTS_PM.POWER_BE20 = pow[19]
             pub2.publish(XFFTS_PM)
+            time.sleep(0.02)#shiotani added
 
         # Print Shut Down Massage
         # -----------------------
@@ -266,6 +260,7 @@ if __name__ == '__main__':
     serv.start_thread()
 
     while True:
+        time.sleep(0.1)#shiotani added
         pass
 
 
