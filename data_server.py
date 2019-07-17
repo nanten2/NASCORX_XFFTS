@@ -12,9 +12,9 @@ import threading
 sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS')
 import udp_client
 
-from NASCORX.msg import XFFTS_msg
-from NASCORX.msg import XFFTS_pm_msg
-from NASCORX.msg import XFFTS_temp_msg
+from nascorx_xffts.msg import XFFTS_msg
+from nascorx_xffts.msg import XFFTS_pm_msg
+from nascorx_xffts.msg import XFFTS_temp_msg
 
 
 class data_server(object):
