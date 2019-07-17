@@ -98,7 +98,7 @@ class data_server(object):
             header = data_header()
             timestamp = header.timestamp
             BE_num = header.BE_num
-
+            
             #make data
             spec = np.random.normal(5000, 2000, (header.BE_num, 32768))
             pow = np.sum(spec, axis=1)
@@ -106,7 +106,7 @@ class data_server(object):
 
             # ROS Data Trans
             # --------------
-            # Spectrum
+            # Spectru
             XFFTS_SPEC.timestamp = timestamp
             XFFTS_SPEC.BE_num = BE_num
             XFFTS_SPEC.SPEC_BE1 = spec[0]
