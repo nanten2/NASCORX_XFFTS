@@ -148,7 +148,8 @@ class data_server(object):
             # --------
             header = self.recv_header()
             rawdata = self.recv_data(header.data_size)
-            timestamp = header.timestamp.decode('utf-8')
+            #timestamp = header.timestamp.decode('utf-8')
+            timestamp = str(time.time())
             BE_num = header.BE_num                                                  # BE_num = BE_num_temp
             print(header.timestamp, header.BE_num)
 
@@ -179,7 +180,6 @@ class data_server(object):
             # ROS Data Trans
             # --------------
             # Spectrum
-            timestamp = str(time.time())
             XFFTS_SPEC.timestamp = timestamp
             XFFTS_SPEC.BE_num = BE_num
             XFFTS_SPEC.SPEC_BE1 = spec[0]
