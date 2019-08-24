@@ -4,7 +4,7 @@
 Initialize XFFTS @ NANTEN2
 --------------------------
 
-BE : 1
+BE : 16
 Bandwidth : 2000 [MHz]
 """
 
@@ -26,3 +26,4 @@ client.start()                           # start measurement
 # History
 # -------
 # 2017/12/21 : written by T.Inaba
+# 2019/08/24 : changed parameter
