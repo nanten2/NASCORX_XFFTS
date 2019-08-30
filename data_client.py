@@ -44,7 +44,6 @@ class data_client(object):
         1. index  : The index of the first data to use.
              Type : int
         """
-        print(self.unixlist)
         if start is None: index = 0
         else:
             if mode == 'spec':
