@@ -44,6 +44,7 @@ class data_client(object):
         1. index  : The index of the first data to use.
              Type : int
         """
+        print(self.unixlist)
         if start is None: index = 0
         else:
             if mode == 'spec':
@@ -57,7 +58,7 @@ class data_client(object):
                 start_arg = round(start)
             if mode == 'spec' or mode == 'conti':
                 try: index = unixlist.index(start_arg)
-                except ValueError :
+                except ValueError:
                     index = unixlist.index(round(start + 0.1, 1))
             else:
                 try: index = unixlist.index(start_arg)
@@ -287,7 +288,8 @@ class data_client(object):
 
         # Calculate UNIX-time
         # -------------------
-        unixtime = self.timestamp_to_unixtime(req.timestamp)
+        #unixtime = self.timestamp_to_unixtime(req.timestamp)
+        unixtime = float(req.timestamp)
         unix_ret = round(unixtime, 1)                                               # using xx.x [sec] format
 
         # append data to temporary list
