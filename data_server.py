@@ -8,6 +8,7 @@ import socket
 import struct
 import signal
 import threading
+import psutil
 
 sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS')
 import udp_client
@@ -137,6 +138,9 @@ class data_server(object):
         pub2 = rospy.Publisher('XFFTS_PM', XFFTS_pm_msg, queue_size=10)             # PM = Power Meter
         XFFTS_SPEC = XFFTS_msg()
         XFFTS_PM = XFFTS_pm_msg()
+
+        proc = psutil.Process()
+        proc.nice(-20)
 
         # data relaying loop
         # ------------------
