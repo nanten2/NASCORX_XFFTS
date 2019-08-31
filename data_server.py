@@ -27,8 +27,6 @@ class data_server(object):
     def __init__(self, host='localhost', port=25144):
         self.connect(host, port)
         rospy.init_node('XFFTS_data_server')
-        proc = psutil.Process()
-        p.nice(-20)
         pass
 
     def connect(self, host, port):
@@ -140,6 +138,9 @@ class data_server(object):
         pub2 = rospy.Publisher('XFFTS_PM', XFFTS_pm_msg, queue_size=10)             # PM = Power Meter
         XFFTS_SPEC = XFFTS_msg()
         XFFTS_PM = XFFTS_pm_msg()
+
+        proc = psutil.Process()
+        proc.nice(-20)
 
         # data relaying loop
         # ------------------
