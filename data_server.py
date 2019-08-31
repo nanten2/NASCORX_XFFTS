@@ -8,6 +8,7 @@ import socket
 import struct
 import signal
 import threading
+import psutil
 
 sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS')
 import udp_client
@@ -26,6 +27,8 @@ class data_server(object):
     def __init__(self, host='localhost', port=25144):
         self.connect(host, port)
         rospy.init_node('XFFTS_data_server')
+        proc = psutil.Process()
+        p.nice(-20)
         pass
 
     def connect(self, host, port):
