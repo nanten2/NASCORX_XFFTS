@@ -125,10 +125,10 @@ class data_server(object):
             XFFTS_SPEC.SPEC_BE14 = spec[13]
             XFFTS_SPEC.SPEC_BE15 = spec[14]
             XFFTS_SPEC.SPEC_BE16 = spec[15]
-            XFFTS_SPEC.SPEC_BE17 = spec[16]
-            XFFTS_SPEC.SPEC_BE18 = spec[17]
-            XFFTS_SPEC.SPEC_BE19 = spec[18]
-            XFFTS_SPEC.SPEC_BE20 = spec[19]
+            XFFTS_SPEC.SPEC_BE17 = [0]
+            XFFTS_SPEC.SPEC_BE18 = [0]
+            XFFTS_SPEC.SPEC_BE19 = [0]
+            XFFTS_SPEC.SPEC_BE20 = [0]
             pub.publish(XFFTS_SPEC)
 
             # total power
