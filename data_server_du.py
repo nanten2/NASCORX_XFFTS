@@ -125,10 +125,10 @@ class data_server(object):
             XFFTS_SPEC.SPEC_BE14 = spec[13]
             XFFTS_SPEC.SPEC_BE15 = spec[14]
             XFFTS_SPEC.SPEC_BE16 = spec[15]
-            XFFTS_SPEC.SPEC_BE17 = [0]
-            XFFTS_SPEC.SPEC_BE18 = [0]
-            XFFTS_SPEC.SPEC_BE19 = [0]
-            XFFTS_SPEC.SPEC_BE20 = [0]
+            XFFTS_SPEC.SPEC_BE17 = [0] #spec[16]#
+            XFFTS_SPEC.SPEC_BE18 = [0] #spec[17]#
+            XFFTS_SPEC.SPEC_BE19 = [0] #spec[18]#
+            XFFTS_SPEC.SPEC_BE20 = [0] #spec[19]#
             pub.publish(XFFTS_SPEC)
 
             # total power
@@ -150,10 +150,10 @@ class data_server(object):
             XFFTS_PM.POWER_BE14 = pow[13]
             XFFTS_PM.POWER_BE15 = pow[14]
             XFFTS_PM.POWER_BE16 = pow[15]
-            XFFTS_PM.POWER_BE17 = pow[16]
-            XFFTS_PM.POWER_BE18 = pow[17]
-            XFFTS_PM.POWER_BE19 = pow[18]
-            XFFTS_PM.POWER_BE20 = pow[19]
+            XFFTS_PM.POWER_BE17 = 0 # pow[16]
+            XFFTS_PM.POWER_BE18 = 0 # pow[17]
+            XFFTS_PM.POWER_BE19 = 0 # pow[18]
+            XFFTS_PM.POWER_BE20 = 0 # pow[19]
             pub2.publish(XFFTS_PM)
             time.sleep(0.02)#shiotani added
 
@@ -214,10 +214,10 @@ class data_server(object):
             XFFTS_TEMP.TEMP_BE14 = temps[13]
             XFFTS_TEMP.TEMP_BE15 = temps[14]
             XFFTS_TEMP.TEMP_BE16 = temps[15]
-            XFFTS_TEMP.TEMP_BE17 = temps[16]
-            XFFTS_TEMP.TEMP_BE18 = temps[17]
-            XFFTS_TEMP.TEMP_BE19 = temps[18]
-            XFFTS_TEMP.TEMP_BE20 = temps[19]
+            XFFTS_TEMP.TEMP_BE17 = 0 #temps[16]
+            XFFTS_TEMP.TEMP_BE18 = 0 #temps[17]
+            XFFTS_TEMP.TEMP_BE19 = 0 #temps[18]
+            XFFTS_TEMP.TEMP_BE20 = 0 #temps[19]
             pub3.publish(XFFTS_TEMP)
 
             time.sleep(1)
@@ -244,7 +244,7 @@ class data_header(object):
         self.timestamp = (datetime.now()).strftime('%Y-%m-%dT%H:%M:%S.%fPC  ')
         self.integration_time = 998993
         self.phase_number = int(1)
-        self.BE_num = int(20)   #BEの数を変えれる
+        self.BE_num = int(16)   #BEの数を変えれる
         self.blocking = int(1)
         return
 
