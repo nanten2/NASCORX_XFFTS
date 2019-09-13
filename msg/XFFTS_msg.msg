@@ -1,4 +1,4 @@
-string timestamp
+float64 timestamp
 int64 BE_num
 float32[] SPEC_BE1
 float32[] SPEC_BE2
