@@ -36,7 +36,7 @@ class data_server(object):
         pass
 
     def callback(self, req):
-        print("check")
+        print(req.obs_mode)
         if req.obs_mode == "ON":
             self.spec = self.on
         elif req.obs_mode == "OFF" or req.obs_mode == "SKY":
@@ -156,7 +156,7 @@ class data_server(object):
             reader = csv.reader(f)
             for i in reader:
                 d[i[0]] = i[1]
-        self.pub = [rospy.Publisher("xffts_spec_{}".format(d[i]), XFFTS_spec_msg, queue_size=10) for i in d.keys()]
+        self.pub = [rospy.Publisher("xffts_{}".format(d[i]), XFFTS_spec_msg, queue_size=10) for i in d.keys()]
         self.pub2 = [rospy.Publisher("xffts_power_{}".format(d[i]), XFFTS_totalp_msg, queue_size=10) for i in d.keys()]
 
         xffts_spec = [XFFTS_spec_msg() for i in range(20)]
@@ -179,7 +179,6 @@ class data_server(object):
             #rawdata = self.recv_data(header.data_size)
             #timestamp = header.timestamp.decode('utf-8')
             timestamp = time.time()
-            timestamp = c
             c = c+1
             timestamp2 = str(time.time())
             #BE_num = header.BE_num
@@ -216,7 +215,7 @@ class data_server(object):
             # Spectrum
             for i in range(20):
                 xffts_spec[i].timestamp = timestamp
-                xffts_spec[i].spec = spec[i]
+                xffts_spec[i].spec = self.spec
 
             for i in range(20):
                 xffts_totalp[i].timestamp = timestamp
@@ -239,7 +238,7 @@ class data_server(object):
         while not rospy.is_shutdown():
             #print(self.queue.qsize())
             tmp = self.queue.get()
-            for i in range(20):
+            for i in range(16):
                 self.pub[i].publish(tmp[0][i])
                 self.pub2[i].publish(tmp[1][i])
             #self.pub.publish(tmp[0])
