@@ -213,11 +213,11 @@ class data_server(object):
             # ROS Data Trans
             # --------------
             # Spectrum
-            for i in range(20):
+            for i in range(1):#20
                 xffts_spec[i].timestamp = timestamp
                 xffts_spec[i].spec = self.spec
 
-            for i in range(20):
+            for i in range(1):
                 xffts_totalp[i].timestamp = timestamp
                 xffts_totalp[i].total_power = pow[i]
                 
